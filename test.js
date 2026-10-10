@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
-const { columnIndex, columnLetter, parseCsv, parseRowList, readSheetRow, readSheetRows } = require("./sheet.js");
+const { columnIndex, columnLetter, parseCsv, parseRowList, parseImagePaths, readSheetRow, readSheetRows } = require("./sheet.js");
 const { matchImageFile } = require("./images.js");
 const { contentFilePath, localFileUrl, resolveContentRow } = require("./content.js");
 
@@ -11,6 +11,8 @@ async function main() {
     ["id", 'First line\nSecond "quote"', "title"]
   ]);
   assert.deepEqual(parseRowList("2, 4-6, 2"), [2, 4, 5, 6]);
+  assert.deepEqual(parseImagePaths("C:\\a\\one.jpg\nC:\\b\\two.png"),
+    ["C:\\a\\one.jpg", "C:\\b\\two.png"]);
   assert.throws(() => parseRowList("6-4"), /không hợp lệ/);
   const imageFiles = [
     { name: "cover.jpg", webkitRelativePath: "images/row2/cover.jpg" },
@@ -55,7 +57,7 @@ async function main() {
     assert.equal(url.searchParams.get("range"), `A${row}:G${row}`);
     return {
       ok: true, headers: { get: () => "text/csv" },
-      text: async () => `a,b,c,Story,e,Title ${row},C:\\sample\\images\\row${row}\\cover.jpg`
+      text: async () => `a,b,c,Story,e,Title ${row},"C:\\sample\\images\\row${row}\\one.jpg\nC:\\sample\\images\\row${row}\\two.jpg"`
     };
   };
   try {
@@ -64,7 +66,9 @@ async function main() {
       blogColumn: "D", titleColumn: "F", imageColumn: "G", rowList: "2,4"
     });
     assert.deepEqual(rows.map(row => row.row), [2, 4]);
-    assert.equal(rows[1].imagePath, "C:\\sample\\images\\row4\\cover.jpg");
+    assert.deepEqual(rows[1].imagePaths, [
+      "C:\\sample\\images\\row4\\one.jpg", "C:\\sample\\images\\row4\\two.jpg"
+    ]);
   } finally { global.fetch = originalFetch; }
 
   if (process.argv[2]) await browserTest(process.argv[2]);
@@ -98,11 +102,8 @@ async function browserTest(playwrightModule) {
       </form>
       <script>
         window.events=[];
-        document.querySelector('#post-image-test').onchange=event=>{
-          const file=event.target.files[0];
-          window.uploadedImage={name:file.name,type:file.type,size:file.size};
-          events.push('image');
-        };
+        document.querySelector('#post-image-test').onchange=()=>events.push('cover-image');
+        window.chapterUploads=[];
         document.querySelector('[role=tab]').onmousedown=()=>{
           document.querySelector('[role=tab]').setAttribute('aria-selected','true');
           document.querySelector('[role=tab]').setAttribute('data-state','active');
@@ -115,7 +116,35 @@ async function browserTest(playwrightModule) {
           events.push('analyze');
           setTimeout(()=>{
             document.querySelector('#chapter-heading').textContent='CHƯƠNG ( 2 )';
-            document.querySelector('#rows').innerHTML='<input type="search" value="Chapter 2: Walls"><input type="search" value="Chapter 3: Fear">';
+            document.querySelector('#rows').innerHTML=['Chapter 2: Walls','Chapter 3: Fear'].map((title,index)=>
+              '<div class="chapter"><input type="search" value="'+title+'"><button type="button" aria-label="Sửa">Open</button><div class="chapter-editor" hidden></div></div>'
+            ).join('');
+            document.querySelectorAll('.chapter').forEach((chapter,index)=>{
+              chapter.querySelector('button').onclick=()=>{
+                const container=chapter.querySelector('.chapter-editor');
+                container.hidden=false;
+                if (container.dataset.ready) return;
+                container.dataset.ready='1';
+                const body=document.createElement('div');
+                body.innerHTML='<p>Chapter body '+(index+1)+'</p>';
+                container.append(body);
+                let imageFile;
+                window.tinymce.editors.push({
+                  initialized:true,getBody:()=>body,getContainer:()=>container,
+                  options:{get:key=>key==='images_upload_url'?'/upload':undefined},
+                  editorUpload:{blobCache:{create:(id,file)=>{imageFile=file;return {blobUri:()=>
+                    'blob:'+id}},add:()=>{}}},
+                  getContent:()=>body.innerHTML,
+                  setContent:html=>{body.innerHTML=html},
+                  uploadImages:async()=>{
+                    const img=body.querySelector('img');
+                    window.chapterUploads.push({chapter:index+1,name:imageFile.name,size:imageFile.size});
+                    img.setAttribute('src','https://example.test/uploads/'+imageFile.name);
+                    return [{status:true}];
+                  },save:()=>{},fire:()=>{}
+                });
+              };
+            });
           }, 150);
         };
         save.onclick=()=>events.push('save');
@@ -128,7 +157,11 @@ async function browserTest(playwrightModule) {
     `);
     await page.addScriptTag({ path: path.join(__dirname, "fill.js") });
     const result = await page.evaluate(() => fillBlogPage({
-      blog: "CHAPTER 1\nStory", title: "Blog title", trafficId: "123", category: "Entertainment"
+      blog: "CHAPTER 1\nStory", title: "Blog title", trafficId: "123", category: "Entertainment",
+      chapterImages: [
+        { name: "episode-1.png", type: "image/png", base64: "AQID" },
+        { name: "episode-2.png", type: "image/png", base64: "BAUG" }
+      ]
     }));
     assert.deepEqual(result, { ok: true, chapters: 2 });
     const state = await page.evaluate(() => ({
@@ -137,6 +170,7 @@ async function browserTest(playwrightModule) {
       category: document.querySelector("#category").textContent,
       checked: document.querySelector("#save-name").checked,
       html: window.editorHtml,
+      uploads: window.chapterUploads,
       events: window.events
     }));
     assert.equal(state.title, "Blog title 123");
@@ -145,6 +179,16 @@ async function browserTest(playwrightModule) {
     assert.equal(state.checked, true);
     assert.match(state.html, /<p>CHAPTER 1<\/p><p>Story<\/p>/);
     assert.deepEqual(state.events, ["mode", "category", "option", "content", "analyze"]);
+    assert.deepEqual(state.uploads, [
+      { chapter: 1, name: "episode-1.png", size: 3 },
+      { chapter: 2, name: "episode-2.png", size: 3 }
+    ]);
+    const mismatched = await page.evaluate(() => fillBlogPage({
+      blog: "CHAPTER 1\nStory", title: "Blog title", trafficId: "123", category: "Entertainment",
+      chapterImages: [{ name: "only-one.png", type: "image/png", base64: "AQID" }]
+    }));
+    assert.match(mismatched.error, /1 đường dẫn.*2 chương/);
+    assert.equal(await page.evaluate(() => window.chapterUploads.length), 2);
 
     await page.evaluate(() => {
       window.tinymce = undefined;
@@ -154,13 +198,11 @@ async function browserTest(playwrightModule) {
     });
     const started = Date.now();
     const fallbackResult = await page.evaluate(() => fillBlogPage({
-      blog: "CHAPTER 1\nStory", title: "Blog title", trafficId: "123", category: "Entertainment",
-      image: { name: "cover.png", type: "image/png", base64: "AQID" }
+      blog: "CHAPTER 1\nStory", title: "Blog title", trafficId: "123", category: "Entertainment"
     }));
     assert.deepEqual(fallbackResult, { ok: true, chapters: 2 });
     assert.ok(Date.now() - started < 3000, "vùng soạn thảo sẵn có không được chờ TinyMCE 12 giây");
-    assert.deepEqual(await page.evaluate(() => window.uploadedImage),
-      { name: "cover.png", type: "image/png", size: 3 });
+    assert.equal(await page.evaluate(() => window.events.includes("cover-image")), false);
     assert.equal(await page.evaluate(() => window.events.includes("save")), false);
 
     const missingAnalyze = await browser.newPage();
@@ -186,7 +228,7 @@ async function browserTest(playwrightModule) {
         }
         const row = Number(/A(\d+):/.exec(url.searchParams.get("range"))[1]);
         const image = url.searchParams.get("range").includes(":G")
-          ? `,C:\\sample\\images\\row${row}\\cover.jpg` : "";
+          ? `,"C:\\sample\\images\\row${row}\\one.jpg\nC:\\sample\\images\\row${row}\\two.jpg"` : "";
         const blog = row === 7
           ? "[FILE C:\\sample\\article.txt]\nĐoạn xem trước bị cắt"
           : "CHAPTER 1\nStory";
@@ -221,7 +263,7 @@ async function browserTest(playwrightModule) {
         scripting: { executeScript: async options => {
           window.filledRows.push(options.args[0].title);
           window.filledBlogs.push(options.args[0].blog);
-          window.filledImages.push(options.args[0].image);
+          window.filledImages.push(options.args[0].chapterImages);
           return [{ result: { ok: true, chapters: 2 } }];
         } }
       };
@@ -273,10 +315,13 @@ async function browserTest(playwrightModule) {
     await appPage.getByText("Chọn đúng thư mục ảnh", { exact: false }).waitFor();
     assert.equal(await appPage.locator("#fill-button").isDisabled(), true);
     await appPage.evaluate(() => {
-      const file = new File([new Uint8Array([1, 2, 3])], "cover.jpg", { type: "image/jpeg" });
-      Object.defineProperty(file, "webkitRelativePath", { value: "images/row2/cover.jpg" });
+      const file = new File([new Uint8Array([1, 2, 3])], "one.jpg", { type: "image/jpeg" });
+      Object.defineProperty(file, "webkitRelativePath", { value: "images/row2/one.jpg" });
+      const second = new File([new Uint8Array([4, 5, 6])], "two.jpg", { type: "image/jpeg" });
+      Object.defineProperty(second, "webkitRelativePath", { value: "images/row2/two.jpg" });
       const transfer = new DataTransfer();
       transfer.items.add(file);
+      transfer.items.add(second);
       const picker = document.querySelector("#image-folder");
       picker.files = transfer.files;
       picker.dispatchEvent(new Event("change", { bubbles: true }));
@@ -284,8 +329,10 @@ async function browserTest(playwrightModule) {
     assert.equal(await appPage.locator("#fill-button").isEnabled(), true);
     await appPage.locator("#fill-button").click();
     await appPage.getByText("Hoàn tất: 1 hàng đã điền, 0 hàng lỗi.", { exact: false }).waitFor();
-    assert.equal(await appPage.evaluate(() => window.filledImages.at(-1).name), "cover.jpg");
-    assert.equal(await appPage.evaluate(() => window.filledImages.at(-1).base64), "AQID");
+    assert.deepEqual(await appPage.evaluate(() => window.filledImages.at(-1).map(image => image.name)),
+      ["one.jpg", "two.jpg"]);
+    assert.deepEqual(await appPage.evaluate(() => window.filledImages.at(-1).map(image => image.base64)),
+      ["AQID", "BAUG"]);
 
     await appPage.locator("#image-column").fill("");
     await appPage.getByRole("button", { name: "Đọc các hàng từ Sheets" }).click();

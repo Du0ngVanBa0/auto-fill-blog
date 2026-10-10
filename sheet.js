@@ -74,6 +74,10 @@ function parseRowList(value) {
   return rows;
 }
 
+function parseImagePaths(value) {
+  return String(value || "").split(/\r?\n/).map(path => path.trim()).filter(Boolean);
+}
+
 async function readSheetRow({ sheetUrl, sheetTab, blogColumn, titleColumn, imageColumn = "", rowNumber }) {
   const id = spreadsheetId(sheetUrl);
   const blogIndex = columnIndex(blogColumn);
@@ -98,10 +102,10 @@ async function readSheetRow({ sheetUrl, sheetTab, blogColumn, titleColumn, image
   if (!cells) throw new Error(`Hàng ${row} không có dữ liệu trong tab ${sheetTab}.`);
   const blog = cells[blogIndex] || "";
   const title = cells[titleIndex]?.trim() || "";
-  const imagePath = imageIndex < 0 ? "" : cells[imageIndex]?.trim() || "";
+  const imagePaths = imageIndex < 0 ? [] : parseImagePaths(cells[imageIndex]);
   if (!blog.trim()) throw new Error(`Ô ${blogColumn.toUpperCase()}${row} không có nội dung blog.`);
   if (!title) throw new Error(`Ô ${titleColumn.toUpperCase()}${row} không có tiêu đề blog.`);
-  return { blog, title, imagePath, row, blogCell: `${blogColumn.toUpperCase()}${row}`,
+  return { blog, title, imagePaths, row, blogCell: `${blogColumn.toUpperCase()}${row}`,
     titleCell: `${titleColumn.toUpperCase()}${row}`,
     imageCell: imageIndex < 0 ? "" : `${imageColumn.toUpperCase()}${row}` };
 }
@@ -120,5 +124,5 @@ async function readSheetRows(settings) {
 }
 
 if (typeof module !== "undefined") module.exports = {
-  spreadsheetId, columnIndex, columnLetter, parseCsv, parseRowList, readSheetRow, readSheetRows
+  spreadsheetId, columnIndex, columnLetter, parseCsv, parseRowList, parseImagePaths, readSheetRow, readSheetRows
 };

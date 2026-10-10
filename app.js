@@ -97,22 +97,22 @@ function renderPreview() {
       item.append(source);
       if (row.contentError) contentReady = false;
     }
-    if (row.imagePath) {
+    for (const [index, path] of row.imagePaths.entries()) {
       const image = document.createElement("p");
       image.className = "image-match";
       try {
-        const file = matchImageFile(row.imagePath, selectedFiles);
-        image.textContent = `${row.imageCell} → ${row.imagePath} · Đã khớp: ${file.webkitRelativePath || file.name}`;
+        const file = matchImageFile(path, selectedFiles);
+        image.textContent = `${row.imageCell} · ảnh chương ${index + 1} → ${file.webkitRelativePath || file.name}`;
         const thumbnail = document.createElement("img");
         thumbnail.className = "image-thumbnail";
-        thumbnail.alt = `Ảnh đại diện hàng ${row.row}`;
+        thumbnail.alt = `Ảnh chương ${index + 1}, hàng ${row.row}`;
         thumbnail.src = URL.createObjectURL(file);
         previewUrls.push(thumbnail.src);
         item.append(thumbnail);
       } catch (error) {
         imagesReady = false;
         image.classList.add("error");
-        image.textContent = `${row.imageCell} → ${error.message}`;
+        image.textContent = `${row.imageCell} · ảnh chương ${index + 1} → ${error.message}`;
       }
       item.append(image);
     }
@@ -130,7 +130,7 @@ function renderPreview() {
 
 function showReadStatus() {
   if (!contentReady) return showStatus(loaded.find(row => row.contentError)?.contentError || "Có file nội dung chưa đọc được.", "error");
-  if (!imagesReady) return showStatus("Có ảnh chưa khớp đường dẫn. Chọn đúng thư mục ảnh trong Tùy chọn.", "error");
+  if (!imagesReady) return showStatus("Có ảnh chương chưa khớp đường dẫn. Chọn đúng thư mục ảnh trong Tùy chọn.", "error");
   showStatus(`Đã đọc ${loaded.length} hàng. Kiểm tra danh sách rồi bấm Điền.`, "success");
 }
 
@@ -187,8 +187,8 @@ document.querySelector("#config-form").addEventListener("submit", async event =>
     batchResults.append(line);
     showStatus(`Đang điền hàng ${row.row} (${filled + failed + 1}/${loaded.length})…`);
     try {
-      const file = row.imagePath ? matchImageFile(row.imagePath, selectedFiles) : null;
-      const image = file ? await readImagePayload(file) : null;
+      const chapterImages = await Promise.all(row.imagePaths.map(async path =>
+        readImagePayload(matchImageFile(path, selectedFiles))));
       let tab;
       try {
         tab = await retryTabEdit(() => chrome.tabs.create({ url: editorUrl.href, active: true }));
@@ -200,12 +200,12 @@ document.querySelector("#config-form").addEventListener("submit", async event =>
       const results = await chrome.scripting.executeScript({
         target: { tabId: tab.id }, world: "MAIN", func: fillBlogPage,
         args: [{ blog: row.blog, title: row.title, trafficId: settings.trafficId,
-          category: settings.category, image }]
+          category: settings.category, chapterImages }]
       });
       const result = results[0]?.result;
       if (!result?.ok) throw new Error(result?.error || "Không nhận được kết quả từ trang bài viết.");
       line.classList.add("success");
-      line.textContent = `Hàng ${row.row}: đã điền ${result.chapters} chương${image ? "; đã chọn ảnh đại diện để website tải lên" : ""}.`;
+      line.textContent = `Hàng ${row.row}: đã điền ${result.chapters} chương${chapterImages.length ? `; tải ${chapterImages.length} ảnh vào từng chương` : ""}.`;
       filled++;
     } catch (error) {
       line.classList.add("error");

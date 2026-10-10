@@ -2,7 +2,7 @@
 
 ## Tài nguyên đã chuẩn bị
 
-- Gói tiện ích: `auto-fill-blog-1.3.3.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
+- Gói tiện ích: `auto-fill-blog-1.3.4.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
 - Icon: `icons/icon128.png` trong gói ZIP.
 - Ảnh chụp giao diện: `screenshot-1280x800.png`.
 - Ảnh giới thiệu nhỏ: `promo-440x280.png`.
@@ -21,7 +21,7 @@
 
 **Mô tả chi tiết:**
 
-Auto Fill Blog giúp bạn đọc các hàng được chọn trong Google Sheets và điền vào biểu mẫu tạo bài viết tại DramaStudio. Bạn có thể chỉ định cột nội dung, cột tiêu đề, danh sách hàng như `2,4-6` và cột đường dẫn ảnh đại diện. Nếu nội dung quá dài cho một ô Sheets, ghi `[FILE đường-dẫn-local]` ở đầu ô; tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn riêng của từng hàng sau khi bạn bật quyền file URLs của Chrome. Với ảnh local, chọn thư mục chứa ảnh để tiện ích ghép đúng file cho từng hàng. Bản xem trước cho phép kiểm tra nội dung và ảnh trước khi điền.
+Auto Fill Blog giúp bạn đọc các hàng được chọn trong Google Sheets và điền vào biểu mẫu tạo bài viết tại DramaStudio. Bạn có thể chỉ định cột nội dung, cột tiêu đề, danh sách hàng như `2,4-6` và cột ảnh theo chương. Mỗi dòng trong ô ảnh là một đường dẫn local tương ứng với một chương. Nếu nội dung quá dài cho một ô Sheets, ghi `[FILE đường-dẫn-local]` ở đầu ô; tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn riêng của từng hàng sau khi bạn bật quyền file URLs của Chrome. Với ảnh local, chọn thư mục chứa ảnh để tiện ích ghép đúng file cho từng chương. Bản xem trước cho phép kiểm tra nội dung và ảnh trước khi điền.
 
 Mỗi hàng mở một tab bài viết riêng. Tiện ích chọn chế độ Chương, danh mục, đưa nội dung vào trình soạn thảo, phân tích chương và thêm Traffic ID sau tiêu đề bài viết cùng tên chương. Tiện ích không bấm nút Lưu; bạn kiểm tra kết quả và tự quyết định lưu.
 
@@ -34,7 +34,7 @@ Cần đăng nhập DramaStudio và bật quyền **Bất kỳ ai có đường 
 - `tabs`: mở một tab tạo bài viết cho mỗi hàng và đợi tab tải xong.
 - `scripting`: điền biểu mẫu của trang DramaStudio sau khi người dùng bấm Điền.
 - `docs.google.com`: đọc nội dung các hàng Google Sheets được người dùng chỉ định.
-- `dramastudio.danhngon.pro`: điền biểu mẫu và chuyển ảnh đã chọn vào ô upload.
+- `dramastudio.danhngon.pro`: điền biểu mẫu và tải ảnh riêng vào trình soạn thảo của từng chương.
 - `file:///*`: đọc đúng file `.txt` hoặc `.md` theo marker `[FILE ...]` của các hàng đã chọn; người dùng phải bật **Allow access to file URLs** trong Chrome.
 - Cấu hình được giữ trong `localStorage` của tiện ích. Nội dung hàng, file văn bản và file ảnh được xử lý trong phiên làm việc. Không có máy chủ của nhà phát triển, phân tích hành vi hay quảng cáo.
 - Dữ liệu đến Google Sheets và DramaStudio theo thao tác người dùng; ảnh có thể được máy chủ DramaStudio nhận khi website xử lý upload.

@@ -1,4 +1,4 @@
-async function fillBlogPage({ blog, title, trafficId, category, image = null }) {
+async function fillBlogPage({ blog, title, trafficId, category, chapterImages = [] }) {
   let step = "mở biểu mẫu";
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const text = element => element?.textContent?.replace(/\s+/g, " ").trim() || "";
@@ -116,22 +116,71 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
     return inputs.length >= count ? inputs.slice(0, count) : null;
   }
 
+  async function chapterEditor(input, nextInput) {
+    const inChapter = element => element &&
+      !!(input.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) &&
+      (!nextInput || !!(element.compareDocumentPosition(nextInput) & Node.DOCUMENT_POSITION_FOLLOWING));
+    const findEditor = () => Object.values(window.tinymce?.editors || {}).find(editor =>
+      editor.initialized && editor.getBody?.() && inChapter(editor.getContainer?.()) && visible(editor.getContainer()));
+    let editor = findEditor();
+    if (editor) return editor;
+    let container = input.parentElement;
+    let expand = null;
+    while (container && !container.matches("form, body")) {
+      expand = [...container.querySelectorAll("button")].find(button => visible(button) &&
+        /^(Sửa|Mở|Chỉnh sửa|Edit|Expand)$/i.test(button.getAttribute("aria-label") ||
+          button.getAttribute("title") || text(button)));
+      if (expand) break;
+      container = container.parentElement;
+    }
+    if (!expand) throw new Error(`Không tìm thấy nút mở chương "${input.value}".`);
+    expand.click();
+    editor = await waitFor(findEditor, 10000);
+    return editor;
+  }
+
+  async function uploadChapterImage(editor, image, index) {
+    const options = editor.options;
+    if (!options?.get?.("images_upload_url") && !options?.get?.("images_upload_handler")) {
+      throw new Error(`Chương ${index + 1} chưa có cấu hình tải ảnh của website.`);
+    }
+    const cache = editor.editorUpload?.blobCache;
+    if (!cache?.create || !cache?.add || !editor.uploadImages) {
+      throw new Error(`Không truy cập được bộ tải ảnh của chương ${index + 1}.`);
+    }
+    const binary = atob(image.base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let offset = 0; offset < binary.length; offset++) bytes[offset] = binary.charCodeAt(offset);
+    const file = new File([bytes], image.name, { type: image.type });
+    const info = cache.create(`auto-fill-blog-${Date.now()}-${index}`, file, image.base64);
+    cache.add(info);
+    const marker = `Ảnh chương ${index + 1}: ${image.name}`;
+    editor.setContent(`<p><img src="${info.blobUri()}" alt="${escapeHtml(marker)}"></p>${editor.getContent()}`);
+    editor.save();
+    editor.fire("input");
+    let uploadTimeout;
+    let uploads;
+    try {
+      uploads = await Promise.race([
+        editor.uploadImages(),
+        new Promise((_, reject) => {
+          uploadTimeout = setTimeout(() => reject(new Error("Tải ảnh quá 30 giây.")), 30000);
+        })
+      ]);
+    } finally { clearTimeout(uploadTimeout); }
+    const inserted = [...editor.getBody().querySelectorAll("img")].find(img => img.alt === marker);
+    if (!inserted || /^(blob:|data:)/i.test(inserted.getAttribute("src") || "") ||
+        uploads?.some?.(item => item.status === false)) {
+      throw new Error(`Website chưa tải xong ảnh của chương ${index + 1}.`);
+    }
+    editor.save();
+    editor.fire("input");
+    editor.fire("change");
+  }
+
   try {
     step = "biểu mẫu tạo bài viết";
     const form = await waitFor(() => document.querySelector("form.post-editor-form"));
-
-    if (image) {
-      step = "ảnh đại diện";
-      const input = await waitFor(() => form.querySelector('input[type="file"][accept*="image"]'), 5000);
-      const binary = atob(image.base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
-      const file = new File([bytes], image.name, { type: image.type });
-      const transfer = new DataTransfer();
-      transfer.items.add(file);
-      input.files = transfer.files;
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-    }
 
     step = "tab Chương";
     const chapterTab = () => document.querySelector('form.post-editor-form [role="tab"][id$="-trigger-chapter"]') ||
@@ -189,6 +238,10 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
     step = "các tiêu đề chương sau phân tích";
     const chapters = await waitFor(chapterInputs, 30000);
 
+    if (chapterImages.length && chapterImages.length !== chapters.length) {
+      throw new Error(`Cột ảnh có ${chapterImages.length} đường dẫn nhưng trang đã tách ${chapters.length} chương. Mỗi chương cần đúng một ảnh theo thứ tự.`);
+    }
+
     step = "tiêu đề bài viết";
     const titleInput = await waitFor(() => fieldControl(/^Tiêu đề\s*\*?$/i));
     if (!titleInput.matches("input, textarea")) throw new Error("Không tìm thấy ô nhập Tiêu đề.");
@@ -196,6 +249,18 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
 
     step = "traffic ID của từng chương";
     for (const input of chapters) setValue(input, addId(input.value));
+
+    if (chapterImages.length) {
+      step = "ảnh riêng của từng chương";
+      const editors = [];
+      for (let index = 0; index < chapters.length; index++) {
+        editors.push(await chapterEditor(chapters[index], chapters[index + 1]));
+      }
+      for (let start = 0; start < editors.length; start += 4) {
+        await Promise.all(editors.slice(start, start + 4).map((editor, offset) =>
+          uploadChapterImage(editor, chapterImages[start + offset], start + offset)));
+      }
+    }
     return { ok: true, chapters: chapters.length };
   } catch (error) {
     return { ok: false, error: `Dừng ở bước ${step}: ${error.message} Các ô đã điền trước đó vẫn nằm trên trang để kiểm tra.` };

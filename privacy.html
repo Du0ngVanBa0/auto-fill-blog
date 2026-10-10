@@ -31,11 +31,11 @@
       <li>Cấu hình bạn nhập (liên kết Sheets, tên tab, cột, danh sách hàng, URL trang đích, danh mục và Traffic ID) được lưu trong bộ nhớ cục bộ của trình duyệt để dùng lại.</li>
       <li>Nội dung các hàng được yêu cầu trực tiếp từ Google Sheets khi bạn bấm Đọc. Nội dung được hiển thị trong bản xem trước và giữ trong bộ nhớ của trang tiện ích trong phiên làm việc.</li>
       <li>Nếu ô Sheets chứa `[FILE đường-dẫn]`, tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn đó sau khi bạn bấm Đọc. Mỗi hàng có thể trỏ đến một vị trí khác nhau. Phần chữ xem trước còn lại trong ô không được dùng khi file đọc thành công.</li>
-      <li>Quyền truy cập file local cần được bạn bật một lần trong cài đặt tiện ích của Chrome. Nếu bạn chọn thư mục ảnh, tiện ích chỉ đọc ảnh khớp với đường dẫn của hàng đang xử lý; quyền chọn thư mục ảnh không được lưu cho phiên sau.</li>
+      <li>Quyền truy cập file local cần được bạn bật một lần trong cài đặt tiện ích của Chrome. Nếu bạn chọn thư mục ảnh, tiện ích chỉ đọc các ảnh khớp với đường dẫn của từng chương trong hàng đang xử lý; quyền chọn thư mục ảnh không được lưu cho phiên sau.</li>
     </ul>
 
     <h2>Dữ liệu được gửi đi đâu</h2>
-    <p>Trình duyệt kết nối trực tiếp với <strong>docs.google.com</strong> để đọc các hàng đã chọn. Khi bạn bấm Điền, nội dung và ảnh tương ứng được chuyển vào biểu mẫu tại <strong>dramastudio.danhngon.pro</strong>; website này có thể tải ảnh lên máy chủ của họ khi ô upload nhận file. Du0ngVanBa0 không vận hành máy chủ nhận dữ liệu từ tiện ích này. Tiện ích không có phân tích hành vi, quảng cáo hoặc chức năng bán dữ liệu.</p>
+    <p>Trình duyệt kết nối trực tiếp với <strong>docs.google.com</strong> để đọc các hàng đã chọn. Khi bạn bấm Điền, nội dung được đưa vào biểu mẫu tại <strong>dramastudio.danhngon.pro</strong> và ảnh riêng của từng chương được tải lên máy chủ của website qua trình soạn thảo. Du0ngVanBa0 không vận hành máy chủ nhận dữ liệu từ tiện ích này. Tiện ích không có phân tích hành vi, quảng cáo hoặc chức năng bán dữ liệu.</p>
 
     <h2>Quyền truy cập</h2>
     <p>Quyền <code>tabs</code> dùng để mở và đợi tab bài viết tải xong. Quyền <code>scripting</code> dùng để điền biểu mẫu sau khi bạn bấm Điền. Quyền truy cập <code>file://</code> dùng để đọc các đường dẫn `.txt` hoặc `.md` mà ô Sheets chỉ định, khi bạn đã bật quyền file URLs trong Chrome. Quyền truy cập Google Sheets và DramaStudio chỉ phục vụ việc đọc Sheets và điền bài viết.</p>
