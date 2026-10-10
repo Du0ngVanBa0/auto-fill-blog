@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Du0ngVanBa0">
+  <title>Quyền riêng tư · Auto Fill Blog</title>
+  <style>
+    :root { font: 15px/1.65 "Segoe UI", Arial, sans-serif; color: #343431; background: #f8f6f3; }
+    body { margin: 0; border-top: 4px solid #eab2c0; }
+    main { max-width: 700px; margin: 40px auto; padding: 0 20px 40px; }
+    h1 { font: 500 32px Georgia, serif; margin: 0 0 8px; }
+    h2 { font-size: 17px; margin: 26px 0 7px; }
+    p, li { margin: 0 0 9px; }
+    ul { padding-left: 22px; }
+    a { color: #426f66; }
+    .muted { color: #766f69; }
+    footer { border-top: 1px solid #e6ded8; margin-top: 32px; padding-top: 12px; color: #766f69; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Chính sách quyền riêng tư</h1>
+    <p class="muted">Auto Fill Blog · Du0ngVanBa0 · Cập nhật ngày 10/10/2026</p>
+
+    <h2>Mục đích</h2>
+    <p>Tiện ích đọc những hàng Google Sheets do bạn chọn và điền nội dung vào trang tạo bài viết DramaStudio. Tiện ích không tự bấm nút Lưu bài viết.</p>
+
+    <h2>Dữ liệu được xử lý</h2>
+    <ul>
+      <li>Cấu hình bạn nhập (liên kết Sheets, tên tab, cột, danh sách hàng, URL trang đích, danh mục và Traffic ID) được lưu trong bộ nhớ cục bộ của trình duyệt để dùng lại.</li>
+      <li>Nội dung các hàng được yêu cầu trực tiếp từ Google Sheets khi bạn bấm Đọc. Nội dung được hiển thị trong bản xem trước và giữ trong bộ nhớ của trang tiện ích trong phiên làm việc.</li>
+      <li>Nếu ô Sheets chứa `[FILE đường-dẫn]`, tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn đó sau khi bạn bấm Đọc. Mỗi hàng có thể trỏ đến một vị trí khác nhau. Phần chữ xem trước còn lại trong ô không được dùng khi file đọc thành công.</li>
+      <li>Quyền truy cập file local cần được bạn bật một lần trong cài đặt tiện ích của Chrome. Nếu bạn chọn thư mục ảnh, tiện ích chỉ đọc ảnh khớp với đường dẫn của hàng đang xử lý; quyền chọn thư mục ảnh không được lưu cho phiên sau.</li>
+    </ul>
+
+    <h2>Dữ liệu được gửi đi đâu</h2>
+    <p>Trình duyệt kết nối trực tiếp với <strong>docs.google.com</strong> để đọc các hàng đã chọn. Khi bạn bấm Điền, nội dung và ảnh tương ứng được chuyển vào biểu mẫu tại <strong>dramastudio.danhngon.pro</strong>; website này có thể tải ảnh lên máy chủ của họ khi ô upload nhận file. Du0ngVanBa0 không vận hành máy chủ nhận dữ liệu từ tiện ích này. Tiện ích không có phân tích hành vi, quảng cáo hoặc chức năng bán dữ liệu.</p>
+
+    <h2>Quyền truy cập</h2>
+    <p>Quyền <code>tabs</code> dùng để mở và đợi tab bài viết tải xong. Quyền <code>scripting</code> dùng để điền biểu mẫu sau khi bạn bấm Điền. Quyền truy cập <code>file://</code> dùng để đọc các đường dẫn `.txt` hoặc `.md` mà ô Sheets chỉ định, khi bạn đã bật quyền file URLs trong Chrome. Quyền truy cập Google Sheets và DramaStudio chỉ phục vụ việc đọc Sheets và điền bài viết.</p>
+
+    <h2>Kiểm soát và xóa dữ liệu</h2>
+    <p>Bạn chọn hàng và file cần xử lý, xem trước kết quả, rồi tự quyết định lưu bài. Có thể xóa cấu hình đã lưu bằng cách xóa dữ liệu của tiện ích trong Chrome hoặc gỡ cài đặt tiện ích.</p>
+
+    <h2>Limited Use</h2>
+    <p>Việc sử dụng thông tin nhận từ Google APIs tuân thủ Chrome Web Store User Data Policy, bao gồm các yêu cầu Limited Use. Dữ liệu chỉ được dùng cho chức năng đọc hàng và điền bài viết mà bạn yêu cầu.</p>
+
+    <h2>Liên hệ</h2>
+    <p>Liên hệ hỗ trợ qua <a href="https://github.com/Du0ngVanBa0">trang GitHub của nhà phát triển</a>.</p>
+    <footer>© Du0ngVanBa0</footer>
+  </main>
+</body>
+</html>

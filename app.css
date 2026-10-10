@@ -1,0 +1,85 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #343431;
+  background: #f8f6f3;
+}
+* { box-sizing: border-box; }
+body { margin: 0; border-top: 3px solid #eab2c0; }
+.shell { position: relative; z-index: 1; width: min(600px, calc(100% - 24px)); margin: 0 auto; }
+.sakura-layer { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.sakura-layer i { position: absolute; top: -15px; width: 10px; height: 14px; border-radius: 75% 0 75% 0; background: #dda8b5; opacity: 0; animation: petal-fall 17s linear infinite; }
+.sakura-layer i:nth-child(1) { left: 12%; animation-delay: -3s; }
+.sakura-layer i:nth-child(2) { left: 29%; animation-delay: -12s; animation-duration: 21s; }
+.sakura-layer i:nth-child(3) { left: 61%; animation-delay: -7s; animation-duration: 19s; }
+.sakura-layer i:nth-child(4) { left: 78%; animation-delay: -15s; animation-duration: 23s; }
+.sakura-layer i:nth-child(5) { left: 91%; animation-delay: -1s; animation-duration: 25s; }
+@keyframes petal-fall { 0% { transform: translate3d(0, -20px, 0) rotate(0); opacity: 0; } 10% { opacity: .45; } 85% { opacity: .45; } 100% { transform: translate3d(70px, 110vh, 0) rotate(480deg); opacity: 0; } }
+.form-panel { margin-top: 12px; padding: 14px; background: #fffcfa; border: 1px solid #e6ded8; border-radius: 8px; }
+.field { display: flex; flex-direction: column; min-width: 0; gap: 4px; color: #534b46; font-size: 11px; font-weight: 600; }
+.field-grid { display: grid; gap: 9px; margin-top: 9px; }
+.quick-fields { grid-template-columns: 1.15fr 1.4fr .8fr; }
+.three { grid-template-columns: 1.5fr 1fr 1fr; }
+.image-fields { grid-template-columns: 100px minmax(0, 1fr); }
+input { width: 100%; height: 33px; padding: 0 9px; border: 1px solid #d9d1cb; border-radius: 5px; background: #fff; color: #383633; font: 12px "Segoe UI", Arial, sans-serif; outline: none; }
+input::placeholder { color: #a59a94; }
+input:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid #568d81; outline-offset: 2px; }
+input:disabled { background: #f7f3ef; color: #8f8882; }
+.disclosure { border-top: 1px solid #eee8e3; margin-top: 12px; padding-top: 9px; }
+.disclosure summary { cursor: pointer; color: #4d665f; font-size: 11px; font-weight: 700; }
+.disclosure summary span { float: right; color: #958b85; font-weight: 400; }
+.disclosure-content { padding-top: 3px; }
+.disclosure-content > .field { margin-top: 9px; }
+input[type="file"] { height: 33px; padding: 3px; font-size: 11px; }
+input[type="file"]::file-selector-button { border: 1px solid #d9c9c3; border-radius: 4px; background: #f8ece8; color: #51423e; padding: 3px 7px; margin-right: 6px; cursor: pointer; }
+.folder-count { color: #817972; font-size: 10px; margin: 5px 0 0; }
+.local-file-note { color: #766d68; font-size: 11px; line-height: 1.5; margin: 9px 0 0; }
+.actions { display: flex; justify-content: flex-end; align-items: center; gap: 7px; margin-top: 11px; }
+.save-note { margin-right: auto; color: #6d766c; font-size: 10px; }
+.button { min-height: 33px; border: 1px solid transparent; border-radius: 5px; padding: 6px 11px; font: 700 11px "Segoe UI", Arial, sans-serif; cursor: pointer; }
+.button:disabled { opacity: .47; cursor: not-allowed; }
+.button.secondary { color: #514541; background: #f5e5df; border-color: #edcec5; }
+.button.secondary:hover:not(:disabled) { background: #f0d8cf; }
+.button.primary { color: #fff; background: #426f66; }
+.button.primary:hover:not(:disabled) { background: #345b53; }
+.status { margin: 8px 0 0; color: #625e59; font-size: 11px; }
+.status:empty { display: none; }
+.status.error { color: #a8443e; }
+.status.success { color: #386c52; }
+.preview-panel { margin-top: 10px; }
+.preview-list { display: grid; gap: 5px; }
+.preview-item { background: #fffcfa; border: 1px solid #e5dbd5; border-radius: 5px; padding: 0 10px; }
+.preview-item summary { display: flex; align-items: baseline; gap: 8px; padding: 8px 0; cursor: pointer; font-size: 11px; }
+.preview-item summary strong { flex: none; color: #9e655e; }
+.preview-item summary span { overflow-wrap: anywhere; }
+.preview-item .preview-meta, .preview-item .image-match { color: #79736d; font: 10px/1.5 Consolas, monospace; margin: 0 0 7px; overflow-wrap: anywhere; }
+.preview-item .image-match.error { color: #a8443e; }
+.image-thumbnail { width: 70px; height: 70px; object-fit: cover; border: 1px solid #e5dbd5; border-radius: 5px; display: block; margin: 0 0 7px; }
+.preview-item pre { font: 10px/1.5 Consolas, monospace; white-space: pre-wrap; word-break: break-word; color: #615d59; max-height: 140px; overflow: auto; margin: 0 0 8px; border-top: 1px solid #eee8e3; padding-top: 7px; }
+.batch-results { display: grid; gap: 5px; margin-top: 8px; }
+.batch-results:empty { display: none; }
+.batch-row { margin: 0; border: 1px solid #e6ded8; border-radius: 5px; background: #fffcfa; padding: 7px 9px; color: #625e59; font-size: 11px; }
+.batch-row.success { color: #386c52; }
+.batch-row.error { color: #a8443e; }
+footer { display: flex; gap: 14px; align-items: center; margin: 12px 0 16px; color: #8a8079; font-size: 10px; }
+footer a { color: #426f66; }
+.owner-link { display: inline-flex; align-items: center; gap: 7px; color: #625450; text-decoration: none; }
+.owner-link img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 0 0 1px #e4b9c0, 0 2px 8px #e4b9c088; animation: avatar-float 4s ease-in-out infinite; }
+.owner-link:hover span { text-decoration: underline; }
+@keyframes avatar-float { 50% { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .sakura-layer i, .owner-link img { animation: none; }
+  .sakura-layer { display: none; }
+}
+@media (max-width: 520px) {
+  .quick-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-fields .field:first-child { grid-column: 1 / -1; }
+  .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .disclosure summary span { display: none; }
+}
+@media (max-width: 360px) {
+  .image-fields { grid-template-columns: 1fr; }
+  .three { grid-template-columns: 1fr; }
+  .actions { flex-direction: column; }
+  .button { width: 100%; }
+}
