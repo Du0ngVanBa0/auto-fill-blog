@@ -6,14 +6,14 @@ Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hà
 
 ## Cài miễn phí từ GitHub
 
-1. Tải [mã nguồn mới nhất dạng ZIP](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip), rồi giải nén vào một thư mục cố định. Thư mục cần chọn là **auto-fill-blog-main**, nơi có file `manifest.json` ngay bên trong.
+1. Mở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), tải file `auto-fill-blog-1.3.5.zip` trong **Assets**, rồi giải nén vào một thư mục cố định. Chọn thư mục có file `manifest.json` ngay bên trong. Nếu muốn dùng mã nguồn mới nhất trên `main`, có thể tải [ZIP mã nguồn](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip) thay thế.
 2. Mở `chrome://extensions` trong Chrome trên máy tính.
-3. Bật **Developer mode** ở góc trên bên phải → bấm **Load unpacked** → chọn thư mục **auto-fill-blog-main** ở bước 1.
+3. Bật **Developer mode** ở góc trên bên phải → bấm **Load unpacked** → chọn thư mục đã giải nén ở bước 1, nơi có `manifest.json`.
 4. Bấm biểu tượng mảnh ghép trên thanh công cụ, ghim **Auto Fill Blog** nếu muốn, rồi bấm icon tiện ích để mở trang cấu hình.
 
 Đây là cách cài trực tiếp từ GitHub, chưa có bản Chrome Web Store. Giữ thư mục đã giải nén ở nguyên vị trí để Chrome tiếp tục tải tiện ích.
 
-**Cập nhật:** tải ZIP mới, thay nội dung **trong cùng thư mục đã cài**, mở `chrome://extensions` và bấm **Reload** trên card Auto Fill Blog. Đóng trang cấu hình cũ rồi mở lại. Nếu dùng `git clone`, chạy `git pull` trong thư mục đó rồi Reload.
+**Cập nhật:** tải ZIP ở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), thay nội dung **trong cùng thư mục đã cài**, mở `chrome://extensions` và bấm **Reload** trên card Auto Fill Blog. Đóng trang cấu hình cũ rồi mở lại. Nếu dùng `git clone`, chạy `git pull` trong thư mục đó rồi Reload.
 
 ## Chuẩn bị
 
