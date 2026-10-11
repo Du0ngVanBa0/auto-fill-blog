@@ -1,35 +1,37 @@
-async function fillBlogPage({ blog, title, trafficId, category, chapterImages = [] }) {
+async function fillBlogPage({ blog, title, trafficId, category, image = null }) {
   let step = "mở biểu mẫu";
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const text = element => element?.textContent?.replace(/\s+/g, " ").trim() || "";
-  const visible = element => !!element && element.getClientRects().length > 0;
+  const visible = element => !!element && (element.checkVisibility
+    ? element.checkVisibility({ checkVisibilityCSS: true })
+    : element.getClientRects().length > 0);
   const controls = "input, textarea, select, button, [role='combobox']";
 
-  async function waitFor(getValue, timeout = 20000) {
-    const end = Date.now() + timeout;
-    let value;
-    while (Date.now() < end) {
+  function matchingFieldLabels(pattern) {
+    const form = document.querySelector("form.post-editor-form");
+    const scope = form || document;
+    const labels = [...scope.querySelectorAll("label")]
+      .filter(element => pattern.test(text(element)) && visible(element));
+    if (labels.length) return labels;
+    return [...scope.querySelectorAll("span, div")]
+      .filter(element => !element.children.length && pattern.test(text(element)) && visible(element));
+  }
+
+  async function waitFor(getValue) {
+    for (;;) {
       if (location.pathname === "/login") throw new Error("Trang đã chuyển về màn hình đăng nhập. Hãy đăng nhập rồi thử lại.");
-      value = getValue();
+      const value = getValue();
       if (value && (!Array.isArray(value) || value.length > 0)) return value;
-      await sleep(250);
+      await sleep(500);
     }
-    throw new Error(`Không tìm thấy ${step} trên trang.`);
   }
 
   function findLabel(pattern) {
-    const matches = [...document.querySelectorAll("label, span, div, p")]
-      .filter(element => visible(element) && pattern.test(text(element)));
-    return matches.find(element => element.tagName === "LABEL") ||
-      matches.sort((a, b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0];
+    return matchingFieldLabels(pattern)[0];
   }
 
   function fieldControl(pattern) {
-    const labels = [...document.querySelectorAll("label, span, div, p")]
-      .filter(element => visible(element) && pattern.test(text(element)))
-      .sort((a, b) => (a.tagName === "LABEL" ? -1 : 0) - (b.tagName === "LABEL" ? -1 : 0) ||
-        a.querySelectorAll("*").length - b.querySelectorAll("*").length);
-    for (const label of labels) {
+    for (const label of matchingFieldLabels(pattern)) {
       const linked = label.getAttribute("for") && document.getElementById(label.getAttribute("for"));
       if (linked) return linked;
       let container = label;
@@ -43,7 +45,7 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
 
   function findButton(pattern) {
     return [...document.querySelectorAll("button, [role='button']")]
-      .find(button => visible(button) && pattern.test(text(button)));
+      .find(button => pattern.test(text(button)) && visible(button));
   }
 
   function setValue(input, value) {
@@ -64,24 +66,34 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
   }
 
+  function blogHtml() {
+    return blog.replace(/\r\n?/g, "\n").split("\n")
+      .map(line => `<p>${line ? escapeHtml(line) : "&nbsp;"}</p>`).join("");
+  }
+
   async function fillEditor() {
     const target = await waitFor(() => {
-      const editors = Object.values(window.tinymce?.editors || {});
-      const editor = editors.find(item => item.initialized && item.getBody?.() && visible(item.getContainer?.()));
+      const manager = window.tinymce;
+      const listed = manager?.get?.();
+      const editors = [...(Array.isArray(listed) ? listed : []),
+        ...Object.values(manager?.editors || {}), manager?.activeEditor].filter(Boolean);
+      const editor = editors.find(item => item.initialized && item.getBody?.() &&
+        item.getContainer?.()?.getClientRects().length);
       if (editor) return { editor };
-      const iframeBody = [...document.querySelectorAll("iframe")]
-        .map(frame => { try { return frame.contentDocument?.body; } catch { return null; } })
-        .find(body => body?.isContentEditable);
-      const editable = iframeBody || [...document.querySelectorAll("[contenteditable='true']")].find(visible);
+      if (editors.length) return null;
+      const editableFrame = [...document.querySelectorAll("iframe")].find(frame => {
+        try { return frame.contentDocument?.body?.isContentEditable; } catch { return false; }
+      });
+      if (editableFrame?.matches(".tox-edit-area__iframe, iframe[id$='_ifr']")) {
+        throw new Error("Không lấy được TinyMCE của trang. Tải lại tab tạo bài viết rồi bấm Điền lại.");
+      }
+      const editable = editableFrame?.contentDocument.body ||
+        [...document.querySelectorAll("[contenteditable='true']")].find(visible);
       return editable ? { editable } : null;
-    }, 12000);
+    });
     if (target.editor) {
-      const html = blog.replace(/\r\n?/g, "\n").split("\n")
-        .map(line => `<p>${line ? escapeHtml(line) : "&nbsp;"}</p>`).join("");
-      target.editor.setContent(html);
+      target.editor.setContent(blogHtml());
       target.editor.save();
-      target.editor.fire("input");
-      target.editor.fire("change");
       return;
     }
 
@@ -93,16 +105,17 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     const selection = editorDocument.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    if (!editorDocument.execCommand("insertText", false, blog)) {
+    if (!editorDocument.execCommand("insertHTML", false, blogHtml())) {
       throw new Error("Trình soạn thảo không nhận nội dung thuần văn bản.");
     }
-    editable.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   function chapterInputs() {
     const form = document.querySelector("form.post-editor-form");
+    if (!form) return null;
     const heading = [...form.querySelectorAll("h1, h2, h3, h4, h5, h6, div, span")]
-      .filter(element => visible(element) && /^CHƯƠNG\s*\(\s*\d+\s*\)$/i.test(text(element)))
+      .filter(element => (element.tagName[0] === "H" || element.children.length <= 2) &&
+        /^CHƯƠNG\s*\(\s*\d+\s*\)$/i.test(text(element)) && visible(element))
       .sort((a, b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0];
     if (!heading) return null;
     const count = Number(text(heading).match(/\(\s*(\d+)\s*\)/)?.[1]);
@@ -116,71 +129,26 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     return inputs.length >= count ? inputs.slice(0, count) : null;
   }
 
-  async function chapterEditor(input, nextInput) {
-    const inChapter = element => element &&
-      !!(input.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING) &&
-      (!nextInput || !!(element.compareDocumentPosition(nextInput) & Node.DOCUMENT_POSITION_FOLLOWING));
-    const findEditor = () => Object.values(window.tinymce?.editors || {}).find(editor =>
-      editor.initialized && editor.getBody?.() && inChapter(editor.getContainer?.()) && visible(editor.getContainer()));
-    let editor = findEditor();
-    if (editor) return editor;
-    let container = input.parentElement;
-    let expand = null;
-    while (container && !container.matches("form, body")) {
-      expand = [...container.querySelectorAll("button")].find(button => visible(button) &&
-        /^(Sửa|Mở|Chỉnh sửa|Edit|Expand)$/i.test(button.getAttribute("aria-label") ||
-          button.getAttribute("title") || text(button)));
-      if (expand) break;
-      container = container.parentElement;
-    }
-    if (!expand) throw new Error(`Không tìm thấy nút mở chương "${input.value}".`);
-    expand.click();
-    editor = await waitFor(findEditor, 10000);
-    return editor;
-  }
-
-  async function uploadChapterImage(editor, image, index) {
-    const options = editor.options;
-    if (!options?.get?.("images_upload_url") && !options?.get?.("images_upload_handler")) {
-      throw new Error(`Chương ${index + 1} chưa có cấu hình tải ảnh của website.`);
-    }
-    const cache = editor.editorUpload?.blobCache;
-    if (!cache?.create || !cache?.add || !editor.uploadImages) {
-      throw new Error(`Không truy cập được bộ tải ảnh của chương ${index + 1}.`);
-    }
-    const binary = atob(image.base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let offset = 0; offset < binary.length; offset++) bytes[offset] = binary.charCodeAt(offset);
-    const file = new File([bytes], image.name, { type: image.type });
-    const info = cache.create(`auto-fill-blog-${Date.now()}-${index}`, file, image.base64);
-    cache.add(info);
-    const marker = `Ảnh chương ${index + 1}: ${image.name}`;
-    editor.setContent(`<p><img src="${info.blobUri()}" alt="${escapeHtml(marker)}"></p>${editor.getContent()}`);
-    editor.save();
-    editor.fire("input");
-    let uploadTimeout;
-    let uploads;
-    try {
-      uploads = await Promise.race([
-        editor.uploadImages(),
-        new Promise((_, reject) => {
-          uploadTimeout = setTimeout(() => reject(new Error("Tải ảnh quá 30 giây.")), 30000);
-        })
-      ]);
-    } finally { clearTimeout(uploadTimeout); }
-    const inserted = [...editor.getBody().querySelectorAll("img")].find(img => img.alt === marker);
-    if (!inserted || /^(blob:|data:)/i.test(inserted.getAttribute("src") || "") ||
-        uploads?.some?.(item => item.status === false)) {
-      throw new Error(`Website chưa tải xong ảnh của chương ${index + 1}.`);
-    }
-    editor.save();
-    editor.fire("input");
-    editor.fire("change");
-  }
-
   try {
     step = "biểu mẫu tạo bài viết";
     const form = await waitFor(() => document.querySelector("form.post-editor-form"));
+
+    if (image) {
+      step = "ảnh đại diện của hàng";
+      const input = await waitFor(() => form.querySelector('input[type="file"][accept*="image"]'));
+      let bytes;
+      if (Uint8Array.fromBase64) bytes = Uint8Array.fromBase64(image.base64);
+      else {
+        const binary = atob(image.base64);
+        bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+      }
+      const file = new File([bytes], image.name, { type: image.type });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
 
     step = "tab Chương";
     const chapterTab = () => document.querySelector('form.post-editor-form [role="tab"][id$="-trigger-chapter"]') ||
@@ -196,7 +164,7 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     await waitFor(() => {
       const current = chapterTab();
       return current && (current.getAttribute("aria-selected") === "true" || current.getAttribute("data-state") === "active");
-    }, 10000);
+    });
 
     step = "nút Phân tích chương";
     await waitFor(() => findButton(/Phân tích chương/i));
@@ -213,11 +181,11 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
       if (categoryControl.matches("input")) setValue(categoryControl, category);
       const option = await waitFor(() => {
         const matches = [...document.querySelectorAll("[role='option'], [cmdk-item], li, div, span")]
-          .filter(element => visible(element) && !categoryControl.contains(element) &&
-            text(element).toLowerCase() === category.toLowerCase());
+          .filter(element => !categoryControl.contains(element) &&
+            text(element).toLowerCase() === category.toLowerCase() && visible(element));
         return matches.find(element => element.matches("[role='option'], [cmdk-item]")) ||
           matches.sort((a, b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0];
-      }, 7000);
+      });
       option.click();
     }
 
@@ -236,11 +204,7 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     analyze.click();
 
     step = "các tiêu đề chương sau phân tích";
-    const chapters = await waitFor(chapterInputs, 30000);
-
-    if (chapterImages.length && chapterImages.length !== chapters.length) {
-      throw new Error(`Cột ảnh có ${chapterImages.length} đường dẫn nhưng trang đã tách ${chapters.length} chương. Mỗi chương cần đúng một ảnh theo thứ tự.`);
-    }
+    const chapters = await waitFor(chapterInputs);
 
     step = "tiêu đề bài viết";
     const titleInput = await waitFor(() => fieldControl(/^Tiêu đề\s*\*?$/i));
@@ -250,20 +214,12 @@ async function fillBlogPage({ blog, title, trafficId, category, chapterImages = 
     step = "traffic ID của từng chương";
     for (const input of chapters) setValue(input, addId(input.value));
 
-    if (chapterImages.length) {
-      step = "ảnh riêng của từng chương";
-      const editors = [];
-      for (let index = 0; index < chapters.length; index++) {
-        editors.push(await chapterEditor(chapters[index], chapters[index + 1]));
-      }
-      for (let start = 0; start < editors.length; start += 4) {
-        await Promise.all(editors.slice(start, start + 4).map((editor, offset) =>
-          uploadChapterImage(editor, chapterImages[start + offset], start + offset)));
-      }
-    }
     return { ok: true, chapters: chapters.length };
   } catch (error) {
-    return { ok: false, error: `Dừng ở bước ${step}: ${error.message} Các ô đã điền trước đó vẫn nằm trên trang để kiểm tra.` };
+    return {
+      ok: false,
+      error: `Dừng ở bước ${step}: ${error.message} Các ô đã điền trước đó vẫn nằm trên trang để kiểm tra.`
+    };
   }
 }
 

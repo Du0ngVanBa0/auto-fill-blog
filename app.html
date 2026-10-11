@@ -19,9 +19,11 @@
           <label class="field"><span>Danh mục</span><input id="category" required autocomplete="off"></label>
           <label class="field"><span>Traffic ID</span><input id="traffic-id" inputmode="numeric" placeholder="Ví dụ: 123" required pattern="[0-9]+" autocomplete="off"></label>
         </div>
+        <div id="row-queue" class="row-queue" aria-live="polite" hidden></div>
+        <p id="row-feedback" class="row-feedback" role="status" hidden></p>
 
         <details class="disclosure" id="image-settings">
-          <summary>Cột, ảnh và trang đích <span>Tùy chọn</span></summary>
+          <summary>Cột và trang đích <span>Tùy chọn</span></summary>
           <div class="disclosure-content">
             <div class="field-grid three">
               <label class="field"><span>Tên tab</span><input id="sheet-tab" required autocomplete="off"></label>
@@ -29,26 +31,19 @@
               <label class="field"><span>Cột tiêu đề</span><input id="title-column" required maxlength="3" autocomplete="off"></label>
             </div>
             <p class="local-file-note">Ô bắt đầu bằng <code>[FILE D:\...\blog.txt]</code> được đọc tự động từ đường dẫn. Bật “Allow access to file URLs” cho tiện ích một lần trong <code>chrome://extensions</code>.</p>
-            <div class="field-grid image-fields">
-              <label class="field"><span>Cột ảnh theo chương</span><input id="image-column" maxlength="3" placeholder="G (nếu có)" autocomplete="off"></label>
-              <label class="field image-folder"><span>Thư mục ảnh trên máy</span><input id="image-folder" type="file" webkitdirectory multiple></label>
-            </div>
-            <p id="folder-count" class="folder-count">Mỗi dòng trong ô ảnh là đường dẫn của một chương, đúng thứ tự. Chưa chọn thư mục ảnh.</p>
-            <label class="field"><span>URL trang tạo bài viết</span><input id="editor-url" type="url" required autocomplete="off"></label>
+            <label class="field editor-url-field"><span>URL trang tạo bài viết</span><input id="editor-url" type="url" required autocomplete="off"></label>
           </div>
         </details>
 
         <div class="actions">
           <span class="save-note">Không tự lưu</span>
           <button id="read-button" class="button secondary" type="button">Đọc các hàng từ Sheets</button>
-          <button id="fill-button" class="button primary" type="submit" disabled>Điền các bài viết</button>
         </div>
       </div>
       <p id="status" class="status" role="status" aria-live="polite"></p>
       <section class="preview-panel" id="preview-panel" aria-label="Xem trước các hàng" hidden>
         <div id="preview-list" class="preview-list" hidden></div>
       </section>
-      <div id="batch-results" class="batch-results" aria-live="polite"></div>
     </form>
 
     <footer><a class="owner-link" href="https://github.com/Du0ngVanBa0" target="_blank" rel="noopener noreferrer"><img src="icons/owner-avatar.png" alt="Avatar Du0ngVanBa0"><span>© Du0ngVanBa0</span></a><a href="privacy.html" target="_blank" rel="noopener noreferrer">Quyền riêng tư</a></footer>

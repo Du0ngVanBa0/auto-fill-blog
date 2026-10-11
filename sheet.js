@@ -74,20 +74,15 @@ function parseRowList(value) {
   return rows;
 }
 
-function parseImagePaths(value) {
-  return String(value || "").split(/\r?\n/).map(path => path.trim()).filter(Boolean);
-}
-
-async function readSheetRow({ sheetUrl, sheetTab, blogColumn, titleColumn, imageColumn = "", rowNumber }) {
+async function readSheetRow({ sheetUrl, sheetTab, blogColumn, titleColumn, rowNumber }) {
   const id = spreadsheetId(sheetUrl);
   const blogIndex = columnIndex(blogColumn);
   const titleIndex = columnIndex(titleColumn);
-  const imageIndex = imageColumn.trim() ? columnIndex(imageColumn) : -1;
   const row = Number(rowNumber);
   if (!Number.isSafeInteger(row) || row < 1) throw new Error("Số hàng phải là số nguyên từ 1 trở lên.");
   if (!sheetTab.trim()) throw new Error("Nhập tên tab trong Sheets.");
 
-  const endColumn = columnLetter(Math.max(blogIndex, titleIndex, imageIndex));
+  const endColumn = columnLetter(Math.max(blogIndex, titleIndex));
   const url = new URL(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq`);
   url.searchParams.set("tqx", "out:csv");
   url.searchParams.set("sheet", sheetTab.trim());
@@ -102,12 +97,10 @@ async function readSheetRow({ sheetUrl, sheetTab, blogColumn, titleColumn, image
   if (!cells) throw new Error(`Hàng ${row} không có dữ liệu trong tab ${sheetTab}.`);
   const blog = cells[blogIndex] || "";
   const title = cells[titleIndex]?.trim() || "";
-  const imagePaths = imageIndex < 0 ? [] : parseImagePaths(cells[imageIndex]);
   if (!blog.trim()) throw new Error(`Ô ${blogColumn.toUpperCase()}${row} không có nội dung blog.`);
   if (!title) throw new Error(`Ô ${titleColumn.toUpperCase()}${row} không có tiêu đề blog.`);
-  return { blog, title, imagePaths, row, blogCell: `${blogColumn.toUpperCase()}${row}`,
-    titleCell: `${titleColumn.toUpperCase()}${row}`,
-    imageCell: imageIndex < 0 ? "" : `${imageColumn.toUpperCase()}${row}` };
+  return { blog, title, row, blogCell: `${blogColumn.toUpperCase()}${row}`,
+    titleCell: `${titleColumn.toUpperCase()}${row}` };
 }
 
 async function readSheetRows(settings) {
@@ -124,5 +117,5 @@ async function readSheetRows(settings) {
 }
 
 if (typeof module !== "undefined") module.exports = {
-  spreadsheetId, columnIndex, columnLetter, parseCsv, parseRowList, parseImagePaths, readSheetRow, readSheetRows
+  spreadsheetId, columnIndex, columnLetter, parseCsv, parseRowList, readSheetRow, readSheetRows
 };

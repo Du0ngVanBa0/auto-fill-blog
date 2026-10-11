@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Auto Fill Blog",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Điền bài từ Sheets hoặc file nội dung local vào DramaStudio theo nhiều hàng. Bạn kiểm tra trước khi tự lưu.",
   "icons": {
     "16": "icons/icon16.png",

@@ -1,67 +1,73 @@
 # Auto Fill Blog
 
-Tiện ích Chrome điền các hàng trong Google Sheets vào trang tạo bài viết DramaStudio. Mỗi hàng mở một tab bài viết. Tiện ích **không bấm Lưu**: bạn xem lại tiêu đề, chương, nội dung và ảnh trước khi tự lưu trên website.
+Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hàng có nút **Điền** riêng: bấm nút sẽ mở một tab DramaStudio và điền bài của hàng đó. Tiện ích **không bấm Lưu**; bạn kiểm tra rồi tự lưu trên website.
 
-![Giao diện Auto Fill Blog với dữ liệu mẫu](store/screenshot-1280x800.png)
+![Giao diện hiện tại với dữ liệu mẫu, không phải bài viết thật](store/screenshot-1280x800.png)
 
 ## Cài miễn phí từ GitHub
 
-1. Mở [Releases của Auto Fill Blog](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest) và tải file `auto-fill-blog-1.3.4.zip` trong **Assets**.
-2. Giải nén ZIP vào một thư mục cố định trên máy. Thư mục bạn chọn phải chứa trực tiếp file `manifest.json` cùng `app.html`, `app.js` và thư mục `icons`. Đừng chọn thư mục cha bên ngoài.
-3. Trong Chrome trên máy tính, mở `chrome://extensions`.
-4. Bật **Developer mode** ở góc trên bên phải, bấm **Load unpacked**, rồi chọn thư mục vừa giải nén ở bước 2.
-5. Nếu muốn, bấm biểu tượng mảnh ghép trên thanh công cụ và **Pin** Auto Fill Blog. Bấm icon tiện ích để mở trang cấu hình.
+1. Tải [mã nguồn mới nhất dạng ZIP](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip), rồi giải nén vào một thư mục cố định. Thư mục cần chọn là **auto-fill-blog-main**, nơi có file `manifest.json` ngay bên trong.
+2. Mở `chrome://extensions` trong Chrome trên máy tính.
+3. Bật **Developer mode** ở góc trên bên phải → bấm **Load unpacked** → chọn thư mục **auto-fill-blog-main** ở bước 1.
+4. Bấm biểu tượng mảnh ghép trên thanh công cụ, ghim **Auto Fill Blog** nếu muốn, rồi bấm icon tiện ích để mở trang cấu hình.
 
-Đây là bản cài trực tiếp từ GitHub; chưa phát hành trên Chrome Web Store. Chrome có thể hiện nhắc nhở về tiện ích cài bằng Developer mode. Bạn cần giữ thư mục đã giải nén: di chuyển hoặc xóa thư mục sẽ làm tiện ích ngừng hoạt động.
+Đây là cách cài trực tiếp từ GitHub, chưa có bản Chrome Web Store. Giữ thư mục đã giải nén ở nguyên vị trí để Chrome tiếp tục tải tiện ích.
 
-### Cập nhật phiên bản
+**Cập nhật:** tải ZIP mới, thay nội dung **trong cùng thư mục đã cài**, mở `chrome://extensions` và bấm **Reload** trên card Auto Fill Blog. Đóng trang cấu hình cũ rồi mở lại. Nếu dùng `git clone`, chạy `git pull` trong thư mục đó rồi Reload.
 
-Tải ZIP mới trong Releases, giải nén đè vào **cùng thư mục** đã chọn khi cài. Sau đó mở `chrome://extensions`, bấm **Reload** trên card Auto Fill Blog và mở lại trang cấu hình. Cấu hình đã lưu trên máy thường được giữ khi bạn cập nhật tại cùng thư mục.
+## Chuẩn bị
 
-## Chuẩn bị Google Sheets và trang bài viết
+- Đăng nhập [DramaStudio](https://dramastudio.danhngon.pro/admin/posts/new) trong Chrome.
+- Đặt quyền xem Google Sheets thành **Bất kỳ ai có đường liên kết đều có thể xem**. Tiện ích đọc CSV của Sheets; không cần nhập API key.
+- Xác định cột chứa **nội dung blog** và cột chứa **tiêu đề**. Ví dụ ảnh bên dưới dùng cột D và F.
 
-- Đăng nhập [trang tạo bài viết DramaStudio](https://dramastudio.danhngon.pro/admin/posts/new) bằng Chrome trước khi điền.
-- Trong Google Sheets, đặt quyền xem bảng tính là **Bất kỳ ai có đường liên kết đều có thể xem**. Tiện ích đọc dữ liệu qua CSV, không cần tài khoản Google hoặc API key trong tiện ích.
-- Chuẩn bị cột chứa toàn bộ nội dung blog và cột chứa tiêu đề blog. Nếu muốn chèn ảnh vào các chương, chuẩn bị thêm một cột chứa danh sách đường dẫn ảnh local cho từng hàng.
+## Điền từng hàng
 
-## Cách dùng
+1. Dán **Google Sheets URL**. Nhập **Hàng**, ví dụ `3-5` hoặc `2,4-6`. Mỗi hàng xuất hiện ngay cùng checkbox và vùng thả ảnh đại diện riêng. Thả một ảnh vào đúng hàng, hoặc bấm vùng đó để chọn file; bỏ check hàng không muốn đọc. Tối đa 50 hàng mỗi lần.
 
-1. Nhập **Google Sheets URL** và **Hàng** cần điền, ví dụ `2,4-6`. Có thể chọn tối đa 50 hàng trong một lần.
-2. Mở **Cột, ảnh và trang đích**. Nhập đúng tên tab trong Sheets, chữ cột nội dung và chữ cột tiêu đề (ví dụ `D` và `F`). Các ô này để trống khi cài mới để không mang cấu hình của người khác. URL trang đích được điền sẵn vì tiện ích dành cho DramaStudio.
-3. **Danh mục** mặc định là `Entertainment`; bạn có thể đổi. Nhập **Traffic ID** của lượt chạy hiện tại. Tiện ích thêm số này sau tiêu đề bài và từng tên chương.
-4. Bấm **Đọc các hàng từ Sheets**. Mở từng hàng trong bản xem trước để kiểm tra tiêu đề, nội dung và ảnh của từng chương.
-5. Bấm **Điền các bài viết**. Tiện ích mở một tab cho mỗi hàng, chọn chế độ **Chương**, chọn danh mục, điền nội dung, bật **Lưu tên chapter**, bấm **Phân tích chương**, rồi điền tiêu đề, Traffic ID và ảnh riêng vào từng chương.
-6. Kiểm tra từng tab. Chỉ bấm **Lưu** trên DramaStudio khi bạn hài lòng với kết quả.
+   ![Ba hàng 3 đến 5 với ảnh đại diện riêng ở hàng 4](store/readme-rows.png)
 
-### Blog dài lưu trong file local
+2. Mở **Cột và trang đích**. Nhập đúng **Tên tab** trong Sheets, **Cột nội dung** và **Cột tiêu đề**. URL DramaStudio đã được điền sẵn. **Danh mục** mặc định là `Entertainment`; nhập **Traffic ID** để thêm số đó vào cuối tiêu đề bài và từng tên chương.
 
-Nếu ô Sheets không chứa nổi nội dung, đặt marker `[FILE C:\sample\article.txt]` ở **đầu ô nội dung**, thay đường dẫn mẫu bằng đường dẫn thật đến file `.txt` hoặc `.md` trên máy của bạn. Mỗi hàng có thể trỏ tới một file khác nhau. Khi bấm **Đọc**, tiện ích tự lấy toàn bộ file thay cho phần văn bản xem trước còn lại trong ô; không cần nhập đường dẫn lần thứ hai. Giới hạn mỗi file là 10 MB.
+   ![Vị trí nhập tên tab output và hai cột D, F](store/readme-columns.png)
 
-Để dùng tính năng này, vào `chrome://extensions` → **Details** của Auto Fill Blog → bật **Allow access to file URLs** một lần, rồi quay lại bấm **Đọc các hàng từ Sheets**. Không cần bật quyền này nếu nội dung nằm hoàn toàn trong Sheets.
+3. Bấm **Đọc các hàng từ Sheets** và xem trước từng hàng. Mỗi hàng có nút **Điền** riêng. Bấm nút ở hàng cần làm, chờ tab DramaStudio mở và biểu mẫu xuất hiện. Tiện ích chọn chế độ **Chương**, chọn danh mục, đưa nội dung vào mô tả, bật **Lưu tên chapter**, bấm **Phân tích chương**, rồi điền tiêu đề, Traffic ID và ảnh đại diện của hàng đó.
 
-### Ảnh riêng cho từng chương
+   ![Bản xem trước và nút Điền riêng cho từng hàng](store/readme-preview.png)
 
-Nhập chữ **Cột ảnh theo chương** (ví dụ `G`). Trong ô ảnh của **mỗi hàng**, ghi mỗi đường dẫn trên một dòng, đúng thứ tự chương mà nút **Phân tích chương** tạo ra. Ví dụ ô `G36` cho hai chương:
+4. Kiểm tra tiêu đề, tên chương, nội dung và ảnh trên tab mới. Chỉ bấm **Lưu** trên DramaStudio khi bạn hài lòng. Muốn làm hàng khác, quay lại trang tiện ích và bấm **Điền** của hàng đó.
 
-```text
-D:\images\tap-1.jpg
-D:\images\tap-2.jpg
-```
+DramaStudio có thể tải trang danh sách bài viết trước rồi mới chuyển đến trang tạo bài qua SPA. Tiện ích chờ biểu mẫu thực sự xuất hiện, không đặt giới hạn thời gian và không tự mở thêm tab. Trong lúc chờ, giữ trang tiện ích mở; đóng tab DramaStudio để dừng lượt điền. Trạng thái mỗi hàng ghi riêng thời gian mở trang và thời gian điền.
 
-Bấm **Thư mục ảnh trên máy** và chọn thư mục chứa các ảnh đó. Bản xem trước kiểm tra từng đường dẫn trước khi điền. Khi tách chương, nếu số ảnh khác số chương, tiện ích báo lỗi và không gắn ảnh sai. Ảnh được tải vào trình soạn thảo **của chương tương ứng**, không dùng ô ảnh đại diện chung của bài viết. Ô ảnh trống thì bỏ qua ảnh. Giới hạn mỗi ảnh là 10 MB.
+### Nội dung dài nằm trong file local
+
+Khi ô Sheets quá ngắn, đặt marker này **ở đầu ô nội dung**, với đường dẫn thật của file trên máy:
+
+~~~text
+[FILE C:\sample\chapter.txt]
+Đoạn xem trước trong Sheets có thể bị cắt
+~~~
+
+Tiện ích nhận ra marker và đọc toàn bộ file `.txt` hoặc `.md` cho đúng hàng đó. Mỗi hàng có thể dùng đường dẫn khác nhau; không phải nhập lại file trong giao diện. Giới hạn 10 MB mỗi file.
+
+Lần đầu dùng file local, mở `chrome://extensions` → **Details** của Auto Fill Blog → bật **Allow access to file URLs**. Quay lại trang tiện ích và bấm **Đọc các hàng từ Sheets**. Không cần quyền này khi mọi nội dung nằm trong Sheets.
+
+### Ảnh đại diện riêng cho từng hàng
+
+Mỗi hàng có vùng thả/chọn ảnh riêng như hình bước 1. Ví dụ ảnh chọn ở **Hàng 4** chỉ đi vào ô ảnh đại diện của bài hàng 4; không gắn ảnh vào các chương của hàng khác. Ảnh là tùy chọn, tối đa 10 MB mỗi ảnh. Chrome không giữ lựa chọn file sau khi đóng trang tiện ích, nên hãy chọn lại trước lượt điền sau.
 
 ## Khi gặp lỗi
 
-- **Không đọc được Sheets:** kiểm tra URL, tên tab, chữ cột và quyền xem bằng liên kết. Bảng tính cần cho phép truy cập CSV.
-- **File local không đọc được:** kiểm tra đường dẫn trong marker, đuôi `.txt`/`.md` và quyền **Allow access to file URLs**.
-- **Ảnh chưa khớp hoặc sai số chương:** chọn thư mục chứa đúng file ghi trong ô ảnh; mỗi dòng ứng với một chương, không dùng chung một ảnh cho nhiều chương.
-- **Chrome đang khóa thanh tab:** thả tab đang kéo, chờ một chút rồi bấm Điền lại.
-- **Trang DramaStudio đổi giao diện:** tiện ích dừng ở bước gặp lỗi. Các ô đã điền trước đó vẫn nằm trên tab để bạn kiểm tra.
+- **Không đọc được Sheets:** kiểm tra URL, tên tab, cột và quyền xem bằng liên kết; Sheets phải cho phép đọc CSV.
+- **File local không đọc được:** kiểm tra marker, đường dẫn, đuôi `.txt`/`.md` và quyền **Allow access to file URLs**.
+- **Ảnh sai bài:** xem lại vùng ảnh của đúng hàng trước khi bấm Điền.
+- **Chrome đang khóa thanh tab:** thả tab đang kéo, chờ một chút rồi thử lại.
+- **Trang DramaStudio đổi giao diện:** tiện ích dừng ở bước gặp lỗi. Các ô đã điền trước đó vẫn ở tab để bạn kiểm tra.
 
 ## Dữ liệu và quyền truy cập
 
-Tiện ích chỉ truy cập Google Sheets, các file local được hàng đã chọn chỉ định và `dramastudio.danhngon.pro`. Cấu hình bạn nhập được lưu trong bộ nhớ cục bộ của Chrome; nội dung bài và ảnh được xử lý trong phiên làm việc. Không có máy chủ của nhà phát triển hay chức năng tự đăng bài. Xem [chính sách quyền riêng tư](https://du0ngvanba0.github.io/auto-fill-blog-privacy/).
+Tiện ích truy cập Google Sheets, các file local được hàng đã chọn chỉ định và `dramastudio.danhngon.pro`. Cấu hình được lưu cục bộ trong Chrome; nội dung bài và ảnh được xử lý trong phiên làm việc. Không có máy chủ của nhà phát triển hoặc chức năng tự đăng bài. Xem [chính sách quyền riêng tư](https://du0ngvanba0.github.io/auto-fill-blog-privacy/).
 
 ## Mã nguồn và kiểm thử
 
-Thư mục gốc của repo là mã tiện ích; `store/package.py` tạo ZIP phát hành. `node test.js` chạy kiểm thử xử lý Sheets; `node test.js <đường-dẫn-module-playwright>` chạy thêm kiểm thử điền biểu mẫu. Bản quyền © Du0ngVanBa0.
+Thư mục gốc là mã tiện ích. `store/package.py` tạo ZIP chứa đúng các file cần cho tiện ích. `node test.js` kiểm tra xử lý Sheets; `node test.js <đường-dẫn-module-playwright>` chạy thêm kiểm thử điền biểu mẫu. © Du0ngVanBa0.
