@@ -6,6 +6,19 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
     ? element.checkVisibility({ checkVisibilityCSS: true })
     : element.getClientRects().length > 0);
   const controls = "input, textarea, select, button, [role='combobox']";
+  const modeReset = new Error("Trang đã tự chuyển khỏi chế độ Chương.");
+  let watchChapterMode = false;
+
+  function chapterTab() {
+    return document.querySelector('form.post-editor-form [role="tab"][id$="-trigger-chapter"]') ||
+      findButton(/^Chương$/i);
+  }
+
+  function chapterIsActive() {
+    const tab = chapterTab();
+    return tab && (tab.getAttribute("aria-selected") === "true" ||
+      tab.getAttribute("data-state") === "active");
+  }
 
   function matchingFieldLabels(pattern) {
     const form = document.querySelector("form.post-editor-form");
@@ -20,6 +33,7 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
   async function waitFor(getValue) {
     for (;;) {
       if (location.pathname === "/login") throw new Error("Trang đã chuyển về màn hình đăng nhập. Hãy đăng nhập rồi thử lại.");
+      if (watchChapterMode && !chapterIsActive()) throw modeReset;
       const value = getValue();
       if (value && (!Array.isArray(value) || value.length > 0)) return value;
       await sleep(500);
@@ -150,71 +164,76 @@ async function fillBlogPage({ blog, title, trafficId, category, image = null }) 
       input.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    step = "tab Chương";
-    const chapterTab = () => document.querySelector('form.post-editor-form [role="tab"][id$="-trigger-chapter"]') ||
-      findButton(/^Chương$/i);
-    const mode = await waitFor(chapterTab);
-    if (mode.getAttribute("aria-selected") !== "true" && mode.getAttribute("data-state") !== "active") {
-      mode.focus();
-      mode.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, button: 0 }));
-      mode.click();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      watchChapterMode = false;
+      try {
+        step = "tab Chương";
+        const mode = await waitFor(chapterTab);
+        if (!chapterIsActive()) {
+          mode.focus();
+          mode.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, button: 0 }));
+          mode.click();
+        }
+
+        step = "kích hoạt chế độ Chương";
+        await waitFor(chapterIsActive);
+        watchChapterMode = true;
+
+        step = "nút Phân tích chương";
+        await waitFor(() => findButton(/Phân tích chương/i));
+
+        step = `danh mục ${category}`;
+        const categoryControl = await waitFor(() => fieldControl(/^Danh mục$/i));
+        if (categoryControl.tagName === "SELECT") {
+          const option = [...categoryControl.options].find(item => text(item).toLowerCase() === category.toLowerCase());
+          if (!option) throw new Error(`Không có danh mục ${category}.`);
+          categoryControl.value = option.value;
+          categoryControl.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          categoryControl.click();
+          if (categoryControl.matches("input")) setValue(categoryControl, category);
+          const option = await waitFor(() => {
+            const matches = [...document.querySelectorAll("[role='option'], [cmdk-item], li, div, span")]
+              .filter(element => !categoryControl.contains(element) &&
+                text(element).toLowerCase() === category.toLowerCase() && visible(element));
+            return matches.find(element => element.matches("[role='option'], [cmdk-item]")) ||
+              matches.sort((a, b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0];
+          });
+          option.click();
+        }
+
+        step = "ô Intro / Mô tả";
+        await fillEditor();
+
+        step = "tùy chọn Lưu tên chapter";
+        const saveNameLabel = await waitFor(() => findLabel(/^Lưu tên chapter$/i));
+        const checkbox = saveNameLabel.closest("label")?.querySelector("input[type='checkbox'], [role='checkbox']") ||
+          saveNameLabel.parentElement?.querySelector("input[type='checkbox'], [role='checkbox']");
+        if (!checkbox) throw new Error("Không tìm thấy ô chọn Lưu tên chapter.");
+        if (!(checkbox.checked || checkbox.getAttribute("aria-checked") === "true")) checkbox.click();
+
+        step = "nút Phân tích chương";
+        const analyze = await waitFor(() => findButton(/Phân tích chương/i));
+        analyze.click();
+
+        step = "các tiêu đề chương sau phân tích";
+        const chapters = await waitFor(chapterInputs);
+
+        step = "tiêu đề bài viết";
+        const titleInput = await waitFor(() => fieldControl(/^Tiêu đề\s*\*?$/i));
+        if (!titleInput.matches("input, textarea")) throw new Error("Không tìm thấy ô nhập Tiêu đề.");
+        setValue(titleInput, addId(title));
+
+        step = "traffic ID của từng chương";
+        for (const input of chapters) setValue(input, addId(input.value));
+        // Let the page apply reactive updates from the last input events.
+        await sleep(0);
+        if (!chapterIsActive()) throw modeReset;
+        return { ok: true, chapters: chapters.length };
+      } catch (error) {
+        if (error !== modeReset || attempt === 2) throw error;
+      }
     }
-
-    step = "kích hoạt chế độ Chương";
-    await waitFor(() => {
-      const current = chapterTab();
-      return current && (current.getAttribute("aria-selected") === "true" || current.getAttribute("data-state") === "active");
-    });
-
-    step = "nút Phân tích chương";
-    await waitFor(() => findButton(/Phân tích chương/i));
-
-    step = `danh mục ${category}`;
-    const categoryControl = await waitFor(() => fieldControl(/^Danh mục$/i));
-    if (categoryControl.tagName === "SELECT") {
-      const option = [...categoryControl.options].find(item => text(item).toLowerCase() === category.toLowerCase());
-      if (!option) throw new Error(`Không có danh mục ${category}.`);
-      categoryControl.value = option.value;
-      categoryControl.dispatchEvent(new Event("change", { bubbles: true }));
-    } else {
-      categoryControl.click();
-      if (categoryControl.matches("input")) setValue(categoryControl, category);
-      const option = await waitFor(() => {
-        const matches = [...document.querySelectorAll("[role='option'], [cmdk-item], li, div, span")]
-          .filter(element => !categoryControl.contains(element) &&
-            text(element).toLowerCase() === category.toLowerCase() && visible(element));
-        return matches.find(element => element.matches("[role='option'], [cmdk-item]")) ||
-          matches.sort((a, b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0];
-      });
-      option.click();
-    }
-
-    step = "ô Intro / Mô tả";
-    await fillEditor();
-
-    step = "tùy chọn Lưu tên chapter";
-    const saveNameLabel = await waitFor(() => findLabel(/^Lưu tên chapter$/i));
-    const checkbox = saveNameLabel.closest("label")?.querySelector("input[type='checkbox'], [role='checkbox']") ||
-      saveNameLabel.parentElement?.querySelector("input[type='checkbox'], [role='checkbox']");
-    if (!checkbox) throw new Error("Không tìm thấy ô chọn Lưu tên chapter.");
-    if (!(checkbox.checked || checkbox.getAttribute("aria-checked") === "true")) checkbox.click();
-
-    step = "nút Phân tích chương";
-    const analyze = await waitFor(() => findButton(/Phân tích chương/i));
-    analyze.click();
-
-    step = "các tiêu đề chương sau phân tích";
-    const chapters = await waitFor(chapterInputs);
-
-    step = "tiêu đề bài viết";
-    const titleInput = await waitFor(() => fieldControl(/^Tiêu đề\s*\*?$/i));
-    if (!titleInput.matches("input, textarea")) throw new Error("Không tìm thấy ô nhập Tiêu đề.");
-    setValue(titleInput, addId(title));
-
-    step = "traffic ID của từng chương";
-    for (const input of chapters) setValue(input, addId(input.value));
-
-    return { ok: true, chapters: chapters.length };
   } catch (error) {
     return {
       ok: false,

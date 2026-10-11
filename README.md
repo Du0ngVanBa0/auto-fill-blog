@@ -6,7 +6,7 @@ Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hà
 
 ## Cài miễn phí từ GitHub
 
-1. Mở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), tải file `auto-fill-blog-1.3.5.zip` trong **Assets**, rồi giải nén vào một thư mục cố định. Chọn thư mục có file `manifest.json` ngay bên trong. Nếu muốn dùng mã nguồn mới nhất trên `main`, có thể tải [ZIP mã nguồn](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip) thay thế.
+1. Mở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), tải file `auto-fill-blog-1.3.6.zip` trong **Assets**, rồi giải nén vào một thư mục cố định. Chọn thư mục có file `manifest.json` ngay bên trong. Nếu muốn dùng mã nguồn mới nhất trên `main`, có thể tải [ZIP mã nguồn](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip) thay thế.
 2. Mở `chrome://extensions` trong Chrome trên máy tính.
 3. Bật **Developer mode** ở góc trên bên phải → bấm **Load unpacked** → chọn thư mục đã giải nén ở bước 1, nơi có `manifest.json`.
 4. Bấm biểu tượng mảnh ghép trên thanh công cụ, ghim **Auto Fill Blog** nếu muốn, rồi bấm icon tiện ích để mở trang cấu hình.
@@ -70,4 +70,4 @@ Tiện ích truy cập Google Sheets, các file local được hàng đã chọn
 
 ## Mã nguồn và kiểm thử
 
-Thư mục gốc là mã tiện ích. `store/package.py` tạo ZIP chứa đúng các file cần cho tiện ích. `node test.js` kiểm tra xử lý Sheets; `node test.js <đường-dẫn-module-playwright>` chạy thêm kiểm thử điền biểu mẫu. © Du0ngVanBa0.
+Thư mục gốc là mã tiện ích. `store/package.py` tạo ZIP chứa đúng các file cần cho tiện ích. `node test.js` kiểm tra xử lý Sheets; `node test.js <đường-dẫn-module-playwright>` chạy thêm kiểm thử điền biểu mẫu. `node mode-race.test.js <đường-dẫn-module-playwright>` kiểm tra trang tự chuyển Chương về Normal trong lúc tải. © Du0ngVanBa0.

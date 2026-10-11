@@ -4,7 +4,7 @@
 
 ## Tài nguyên đã chuẩn bị
 
-- Gói tiện ích: `auto-fill-blog-1.3.5.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
+- Gói tiện ích: `auto-fill-blog-1.3.6.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
 - Icon: `icons/icon128.png` trong gói ZIP.
 - Ảnh chụp giao diện: `screenshot-1280x800.png`.
 - Ảnh giới thiệu nhỏ: `promo-440x280.png`.
