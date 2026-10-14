@@ -1,12 +1,12 @@
 # Auto Fill Blog
 
-Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hàng có nút **Điền** riêng: bấm nút sẽ mở một tab DramaStudio và điền bài của hàng đó. Tiện ích **không bấm Lưu**; bạn kiểm tra rồi tự lưu trên website.
+Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hàng có nút **Điền** riêng: bấm nút sẽ mở trang tạo bài bạn cấu hình và điền bài của hàng đó. Tiện ích **không bấm Lưu**; bạn kiểm tra rồi tự lưu trên website.
 
 ![Giao diện hiện tại với dữ liệu mẫu, không phải bài viết thật](store/screenshot-1280x800.png)
 
 ## Cài miễn phí từ GitHub
 
-1. Mở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), tải file `auto-fill-blog-1.3.6.zip` trong **Assets**, rồi giải nén vào một thư mục cố định. Chọn thư mục có file `manifest.json` ngay bên trong. Nếu muốn dùng mã nguồn mới nhất trên `main`, có thể tải [ZIP mã nguồn](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip) thay thế.
+1. Mở [Release mới nhất](https://github.com/Du0ngVanBa0/auto-fill-blog/releases/latest), tải file `auto-fill-blog-1.3.7.zip` trong **Assets**, rồi giải nén vào một thư mục cố định. Chọn thư mục có file `manifest.json` ngay bên trong. Nếu muốn dùng mã nguồn mới nhất trên `main`, có thể tải [ZIP mã nguồn](https://github.com/Du0ngVanBa0/auto-fill-blog/archive/refs/heads/main.zip) thay thế.
 2. Mở `chrome://extensions` trong Chrome trên máy tính.
 3. Bật **Developer mode** ở góc trên bên phải → bấm **Load unpacked** → chọn thư mục đã giải nén ở bước 1, nơi có `manifest.json`.
 4. Bấm biểu tượng mảnh ghép trên thanh công cụ, ghim **Auto Fill Blog** nếu muốn, rồi bấm icon tiện ích để mở trang cấu hình.
@@ -17,7 +17,7 @@ Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hà
 
 ## Chuẩn bị
 
-- Đăng nhập [DramaStudio](https://dramastudio.danhngon.pro/admin/posts/new) trong Chrome.
+- Đăng nhập trang blog cần điền trong Chrome. URL tạo bài có thể là `https://dramastudio.danhngon.pro/admin/posts/new`, `https://viralblog.danhngon.pro/admin/posts/new` hoặc website HTTP(S) khác có cùng biểu mẫu.
 - Đặt quyền xem Google Sheets thành **Bất kỳ ai có đường liên kết đều có thể xem**. Tiện ích đọc CSV của Sheets; không cần nhập API key.
 - Xác định cột chứa **nội dung blog** và cột chứa **tiêu đề**. Ví dụ ảnh bên dưới dùng cột D và F.
 
@@ -27,7 +27,7 @@ Tiện ích Chrome đọc các hàng bạn chọn trong Google Sheets. Mỗi hà
 
    ![Ba hàng 3 đến 5 với ảnh đại diện riêng ở hàng 4](store/readme-rows.png)
 
-2. Mở **Cột và trang đích**. Nhập đúng **Tên tab** trong Sheets, **Cột nội dung** và **Cột tiêu đề**. URL DramaStudio đã được điền sẵn. **Danh mục** mặc định là `Entertainment`; nhập **Traffic ID** để thêm số đó vào cuối tiêu đề bài và từng tên chương.
+2. Mở **Cột và trang đích**. Nhập đúng **Tên tab** trong Sheets, **Cột nội dung** và **Cột tiêu đề**. URL trang tạo bài đã được điền sẵn; bạn có thể thay bằng URL HTTP(S) khác có cùng biểu mẫu. Khi bấm **Điền** lần đầu với website mới, Chrome sẽ hỏi quyền truy cập đúng website đó. **Danh mục** mặc định là `Entertainment`; nhập **Traffic ID** để thêm số đó vào cuối tiêu đề bài và từng tên chương.
 
    ![Vị trí nhập tên tab output và hai cột D, F](store/readme-columns.png)
 
@@ -66,7 +66,7 @@ Mỗi hàng có vùng thả/chọn ảnh riêng như hình bước 1. Ví dụ �
 
 ## Dữ liệu và quyền truy cập
 
-Tiện ích truy cập Google Sheets, các file local được hàng đã chọn chỉ định và `dramastudio.danhngon.pro`. Cấu hình được lưu cục bộ trong Chrome; nội dung bài và ảnh được xử lý trong phiên làm việc. Không có máy chủ của nhà phát triển hoặc chức năng tự đăng bài. Xem [chính sách quyền riêng tư](https://du0ngvanba0.github.io/auto-fill-blog-privacy/).
+Tiện ích truy cập Google Sheets, các file local được hàng đã chọn chỉ định và trang đích do bạn nhập. Quyền với website ngoài `danhngon.pro` chỉ được xin khi bạn bấm Điền và chỉ áp dụng cho website đó. Cấu hình được lưu cục bộ trong Chrome; nội dung bài và ảnh được xử lý trong phiên làm việc. Không có máy chủ của nhà phát triển hoặc chức năng tự đăng bài. Xem [chính sách quyền riêng tư](https://du0ngvanba0.github.io/auto-fill-blog-privacy/).
 
 ## Mã nguồn và kiểm thử
 

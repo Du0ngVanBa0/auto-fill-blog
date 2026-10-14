@@ -4,7 +4,7 @@
 
 ## Tài nguyên đã chuẩn bị
 
-- Gói tiện ích: `auto-fill-blog-1.3.6.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
+- Gói tiện ích: `auto-fill-blog-1.3.7.zip` (tạo bằng `package.py`; `manifest.json` ở gốc ZIP).
 - Icon: `icons/icon128.png` trong gói ZIP.
 - Ảnh chụp giao diện: `screenshot-1280x800.png`.
 - Ảnh giới thiệu nhỏ: `promo-440x280.png`.
@@ -19,27 +19,28 @@
 
 **Danh mục:** Productivity
 
-**Mô tả ngắn:** Đọc nhiều hàng từ Sheets, điền từng bài vào DramaStudio với ảnh riêng và Traffic ID. Xem lại trước khi tự lưu.
+**Mô tả ngắn:** Đọc nhiều hàng từ Sheets, điền từng bài vào trang blog bạn chọn với ảnh riêng và Traffic ID. Xem lại trước khi tự lưu.
 
 **Mô tả chi tiết:**
 
-Auto Fill Blog giúp bạn đọc các hàng được chọn trong Google Sheets và điền vào biểu mẫu tạo bài viết tại DramaStudio. Bạn có thể chỉ định cột nội dung, cột tiêu đề và danh sách hàng như `3-5`. Mỗi hàng hiện ngay trên giao diện với checkbox và ô chọn một ảnh đại diện local riêng. Nếu nội dung quá dài cho một ô Sheets, ghi `[FILE đường-dẫn-local]` ở đầu ô; tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn riêng của từng hàng sau khi bạn bật quyền file URLs của Chrome. Bản xem trước cho phép kiểm tra nội dung và ảnh trước khi điền.
+Auto Fill Blog giúp bạn đọc các hàng được chọn trong Google Sheets và điền vào biểu mẫu tạo bài viết tại trang blog bạn chọn. Bạn có thể chỉ định cột nội dung, cột tiêu đề và danh sách hàng như `3-5`. Mỗi hàng hiện ngay trên giao diện với checkbox và ô chọn một ảnh đại diện local riêng. Nếu nội dung quá dài cho một ô Sheets, ghi `[FILE đường-dẫn-local]` ở đầu ô; tiện ích tự đọc toàn bộ file `.txt` hoặc `.md` tại đường dẫn riêng của từng hàng sau khi bạn bật quyền file URLs của Chrome. Bản xem trước cho phép kiểm tra nội dung và ảnh trước khi điền.
 
 Mỗi hàng mở một tab bài viết riêng. Tiện ích chọn chế độ Chương, danh mục, đưa nội dung vào trình soạn thảo, phân tích chương và thêm Traffic ID sau tiêu đề bài viết cùng tên chương. Tiện ích không bấm nút Lưu; bạn kiểm tra kết quả và tự quyết định lưu.
 
-Cần đăng nhập DramaStudio và bật quyền **Bất kỳ ai có đường liên kết đều có thể xem** cho bảng tính để tiện ích đọc dữ liệu qua CSV. Tiện ích chỉ hỗ trợ trang tạo bài viết tại `dramastudio.danhngon.pro`.
+Cần đăng nhập trang blog đích và bật quyền **Bất kỳ ai có đường liên kết đều có thể xem** cho bảng tính để tiện ích đọc dữ liệu qua CSV. Tiện ích hỗ trợ URL HTTP(S) khác nếu website dùng cùng biểu mẫu tạo bài; Chrome sẽ hỏi quyền cho website đó khi người dùng bấm Điền.
 
-**Single purpose:** Đọc các hàng Google Sheets và file văn bản local được những hàng đó chỉ định, rồi điền vào biểu mẫu tạo bài viết DramaStudio để người dùng kiểm tra trước khi lưu.
+**Single purpose:** Đọc các hàng Google Sheets và file văn bản local được những hàng đó chỉ định, rồi điền vào biểu mẫu tạo bài viết trên website do người dùng chọn để kiểm tra trước khi lưu.
 
 ## Quyền và dữ liệu để khai báo trong Privacy Practices
 
 - `tabs`: mở một tab tạo bài viết cho mỗi hàng và đợi tab tải xong.
-- `scripting`: điền biểu mẫu của trang DramaStudio sau khi người dùng bấm Điền.
+- `scripting`: điền biểu mẫu của trang blog đã chọn sau khi người dùng bấm Điền.
 - `docs.google.com`: đọc nội dung các hàng Google Sheets được người dùng chỉ định.
-- `dramastudio.danhngon.pro`: điền biểu mẫu và chuyển ảnh đại diện riêng của từng hàng vào ô ảnh của bài viết.
+- `*.danhngon.pro`: điền biểu mẫu tại subdomain do người dùng chọn và chuyển ảnh đại diện riêng của từng hàng vào ô ảnh của bài viết.
+- `*://*/*` trong quyền tùy chọn: cho phép hỏi quyền riêng với website ngoài `danhngon.pro` do người dùng nhập; quyền chỉ được xin khi bấm Điền, không được cấp sẵn cho mọi website.
 - `file:///*`: đọc đúng file `.txt` hoặc `.md` theo marker `[FILE ...]` của các hàng đã chọn; người dùng phải bật **Allow access to file URLs** trong Chrome.
 - Cấu hình được giữ trong `localStorage` của tiện ích. Nội dung hàng, file văn bản và file ảnh được xử lý trong phiên làm việc; lựa chọn file ảnh không được giữ sau khi đóng giao diện. Không có máy chủ của nhà phát triển, phân tích hành vi hay quảng cáo.
-- Dữ liệu đến Google Sheets và DramaStudio theo thao tác người dùng; ảnh có thể được máy chủ DramaStudio nhận khi website xử lý upload.
+- Dữ liệu đến Google Sheets và trang blog đã chọn theo thao tác người dùng; ảnh có thể được máy chủ website đó nhận khi xử lý upload.
 
 Khai báo đúng các loại dữ liệu mà Dashboard hỏi, kể cả dữ liệu chỉ xử lý cục bộ. Dán URL chính sách HTTPS ở trên vào Dashboard và giữ nội dung khớp với các khai báo này.
 

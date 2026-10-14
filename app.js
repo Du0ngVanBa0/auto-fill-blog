@@ -263,7 +263,7 @@ async function fillSingleRow(row, resultLine) {
   let editorUrl;
   try {
     editorUrl = new URL(settings.editorUrl);
-    if (editorUrl.protocol !== "https:" || editorUrl.hostname !== "dramastudio.danhngon.pro") throw new Error();
+    if (!/^https?:$/.test(editorUrl.protocol) || !editorUrl.hostname || editorUrl.username || editorUrl.password) throw new Error();
   } catch { return showStatus("URL trang tạo bài viết không hợp lệ.", "error"); }
 
   setBusy(true);
@@ -272,6 +272,9 @@ async function fillSingleRow(row, resultLine) {
   resultLine.textContent = `Hàng ${row.row}: đang mở tab…`;
   showStatus(`Đang điền hàng ${row.row}…`);
   try {
+    if (!await chrome.permissions.request({ origins: [`${editorUrl.origin}/*`] })) {
+      throw new Error(`Chưa được cấp quyền điền vào ${editorUrl.hostname}. Hãy cho phép Chrome truy cập trang này rồi thử lại.`);
+    }
     const file = rowEntries.get(row.row)?.file;
     const image = file ? await readImagePayload(file) : null;
     const listUrl = new URL(editorUrl.href);

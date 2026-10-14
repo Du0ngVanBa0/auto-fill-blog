@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { columnIndex, columnLetter, parseCsv, parseRowList, readSheetRows } = require("./sheet.js");
 const { contentFilePath, localFileUrl, resolveContentRow } = require("./content.js");
+const manifest = require("./manifest.json");
 
 async function main() {
   assert.equal(columnIndex("D"), 3);
@@ -16,6 +17,8 @@ async function main() {
   const fullBlog = "CHAPTER 1\n" + "A long paragraph. ".repeat(4000);
   const resolved = await resolveContentRow({ blog: `[FILE ${localPath}]` }, async () => fullBlog);
   assert.equal(resolved.blog, fullBlog);
+  assert.ok(manifest.host_permissions.includes("https://*.danhngon.pro/*"),
+    "quyền extension phải bao phủ các trang blog cùng hệ thống");
   assert.match((await resolveContentRow({ blog: `[FILE ${localPath}]` },
     async () => { throw new Error("Không đọc được file local."); })).contentError, /Không đọc được/);
 
@@ -36,6 +39,8 @@ async function main() {
   } finally { global.fetch = originalFetch; }
 
   if (process.argv[2]) await browserTest(process.argv[2]);
+  assert.ok(manifest.optional_host_permissions?.includes("*://*/*"),
+    "URL người dùng nhập phải được xin quyền theo từng website");
   console.log("OK: Sheets, hàng riêng, chờ trang và biểu mẫu" + (process.argv[2] ? ", giao diện" : ""));
 }
 
@@ -138,9 +143,15 @@ async function browserTest(playwrightModule) {
       window.filled = [];
       window.tabGets = 0;
       window.tabClosed = false;
+      window.permissionGranted = true;
+      window.permissionRequests = [];
       window.route = "https://dramastudio.danhngon.pro/admin/posts/new";
       window.chrome = {
         extension: { isAllowedFileSchemeAccess: async () => true },
+        permissions: { request: async request => {
+          window.permissionRequests.push(request);
+          return window.permissionGranted;
+        } },
         tabs: {
           create: async options => { window.createdTabs.push(options); return { id: window.createdTabs.length }; },
           get: async () => {
@@ -270,6 +281,47 @@ async function browserTest(playwrightModule) {
     });
     assert.deepEqual(listBeforeForm, { state: "ready", clicks: 1 },
       "URL trang tạo đã đúng nhưng SPA còn ở danh sách: phải vào biểu mẫu ngay khi nút Bài viết mới xuất hiện");
+
+    await appPage.locator("#image-settings summary").click();
+    await appPage.locator("#editor-url").fill("https://viralblog.danhngon.pro/admin/posts/new");
+    await appPage.locator("#image-settings summary").click();
+    await appPage.evaluate(() => {
+      window.tabClosed = false;
+      window.route = "https://viralblog.danhngon.pro/admin/posts/new";
+    });
+    await appPage.getByRole("button", { name: "Điền hàng 5" }).click();
+    await appPage.getByText("Hàng 5: đã điền 2 chương", { exact: false }).waitFor();
+    assert.equal((await appPage.evaluate(() => window.createdTabs.at(-1).url)),
+      "https://viralblog.danhngon.pro/admin/posts");
+
+    await appPage.locator("#image-settings summary").click();
+    await appPage.locator("#editor-url").fill("https://another-blog.example.net/admin/posts/new");
+    await appPage.locator("#image-settings summary").click();
+    await appPage.evaluate(() => { window.route = "https://another-blog.example.net/admin/posts/new"; });
+    await appPage.getByRole("button", { name: "Điền hàng 5" }).click();
+    await appPage.getByText("Hàng 5: đã điền 2 chương", { exact: false }).waitFor();
+    assert.equal((await appPage.evaluate(() => window.createdTabs.at(-1).url)),
+      "https://another-blog.example.net/admin/posts");
+    assert.deepEqual(await appPage.evaluate(() => window.permissionRequests.at(-1)),
+      { origins: ["https://another-blog.example.net/*"] });
+
+    await appPage.evaluate(() => { window.permissionGranted = false; });
+    const beforeDenied = await appPage.evaluate(() => window.createdTabs.length);
+    await appPage.getByRole("button", { name: "Điền hàng 5" }).click();
+    await appPage.locator("#status").getByText("Chưa được cấp quyền", { exact: false }).waitFor();
+    assert.equal(await appPage.evaluate(() => window.createdTabs.length), beforeDenied);
+
+    await appPage.locator("#image-settings summary").click();
+    await appPage.locator("#editor-url").fill("http://local-blog.test/admin/posts/new");
+    await appPage.locator("#image-settings summary").click();
+    await appPage.evaluate(() => {
+      window.permissionGranted = true;
+      window.route = "http://local-blog.test/admin/posts/new";
+    });
+    await appPage.getByRole("button", { name: "Điền hàng 5" }).click();
+    await appPage.waitForFunction(() => window.createdTabs.at(-1)?.url === "http://local-blog.test/admin/posts");
+    assert.deepEqual(await appPage.evaluate(() => window.permissionRequests.at(-1)),
+      { origins: ["http://local-blog.test/*"] });
   } finally { await browser.close(); }
 }
 
